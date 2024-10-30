@@ -8,4 +8,6 @@
 CPU 端先準備好資料準備工作，透過 Graphics API 傳送資料到 GPU 端，每次都牽涉 Memory Read/Write 與 CPU 至 GPU 狀態同步等待之過程。
 
 # 參考延伸閱讀
+[Cocos Creator 性能优化：DrawCall](https://mp.weixin.qq.com/s?__biz=MzI3MDQ1Mzc5MQ==&mid=2247486960&idx=1&sn=4f3dc5a7f588fb7a3cc9122369ee14da&scene=21)
+
 [Cocos Creator 3.8 - 2D UI DrawCall优化详解（上）](https://blog.csdn.net/lizhong2008/article/details/133715903)

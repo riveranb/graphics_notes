@@ -20,7 +20,7 @@ GPU: Graphics Processing Unit
 
 為了電腦繪圖的目標，不同的出發點 (OpenGL | Vulkan | Direct3D | Metal | Game Engine | GPU ...) 有各自的角度闡述 Rendering Pipeline，此文章專注於傳統 GPU 架構運作概念。
 
-## 傳統固定繪圖管線 (Fixed Function)
+## 繪圖管線概念
 ![alt text](images/graphics_rendering.png)
 
 ![alt text](images/render_3dviewing.png)

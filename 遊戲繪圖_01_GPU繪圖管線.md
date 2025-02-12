@@ -2,6 +2,8 @@
 
 GPU: Graphics Processing Unit
 
+![cpugpu](images/cpu2gpu.png)
+
 繪圖管線 (Rendering Pipeline | Graphics Pipeline) 意指 3D 場景內容轉換成為 2D 影像結果的運作流程。可概略分為以下 5 階段：
 
 1. **應用階段 (Application)**

@@ -1,6 +1,6 @@
 # 遊戲開發 - GPU繪圖管線
 
-GPU: Graphics Processing Unit
+GPU: Graphics Processing Unit；下圖是繪圖過程 CPU 端至 GPU 端運作架構示意圖
 
 ![cpugpu](images/cpu2gpu.png)
 

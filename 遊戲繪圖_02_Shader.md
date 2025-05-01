@@ -5,14 +5,15 @@
 
 續文章 ([A Trip Down The Graphics Pipeline](https://www.thecandidstartup.org/2023/03/13/trip-graphics-pipeline.html#:~:text=2001%2D2005%20%3A%20Programmable%20Vertex%20and%20Fragment%20Shaders)) 中介紹可程序化繪圖管線，Shader 即一起被發明提出。
 
-### 2001 ~ 2005 主流 programmable vertex & fragment shader
+### 2001 ~ 2005 主流 Programmable Vertex & Fragment Shader
 
 ![programmable shader](images/graphics_pipeline_programmable_shaders.svg)
 
 Shader 突破了原本固定繪圖管線的限制。GPU 可執行頂點 (Vertex shader) 和像素片段 (Fragment shader) 處理單元。Graphics API，OpenGL 1.4 和 Direct3D 8 推出革命性的高階著色器語言 (High-Level Shader Language)，為 C 語言相似的語法，編譯後成為低階 Shader 組合語言程式集。
-有了革命性的 Shader 概念後，軟體技術推出了材質 (Material) 管理 (優化編譯 Shader 流程)，並設計渲染通道 (rendering pass) 流程
 
-### 2006 ~ 2010 主流 unified shader model
+有了革命性的 Shader 概念後，軟體技術推出了材質 (Material) 管理 (優化編譯 Shader 流程)，並設計渲染通道 (rendering pass) 繪圖流程，完成更複雜的光照功能 (Lighting)。
+
+### 2006 ~ 2010 主流 Unified Shader Model
 
 ![unified shader](images/graphics_pipeline_unified_shader_model.svg)
 
@@ -36,7 +37,7 @@ API開始支持有限的多線程，並引入計算著色器，使GPU可用於�
 
 這為GPU驅動渲染開創可能，3D場景可完全在GPU上管理，數據僅在初始加載和更新時在CPU和GPU間傳輸，大幅減輕CPU渲染負擔。
 
-### 2021 ~ specialized hardware
+### 2021 ~ Specialized Hardware
 
 ![specialized](images/graphics_pipeline_specialization.svg)
 

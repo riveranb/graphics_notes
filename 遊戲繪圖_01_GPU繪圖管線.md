@@ -29,7 +29,7 @@ GPU: Graphics Processing Unit；下圖是繪圖過程 CPU 端至 GPU 端運作�
 
 之前文章已介紹繪圖所需完成的工作流程，早期 GPU 搭配電腦圖學函式庫 (Graphics API) 實現一套固定繪圖管線 (Fixed Function Rendering Pipeline)，運作過程 GPU 執行固定不變的繪圖工作，圖學函式庫可有限制地控制 GPU 工作狀態。下方示意圖中，軟體應用程式需要準備好繪圖資訊 (vertex and index lists)，指定頂點如何完成座標轉換並可實現頂點的光照運算 (transform & lighting)，然後將這些幾何單元資訊傳遞至 GPU 端 (assmbly of primitives)，GPU 進行 rasterization 工作，並支援存取指定貼圖 (texture operations) 計算出貼圖顏色，最終算出像素顏色結果寫入至目標畫面 (繪圖緩衝區，Frame Buffer)，最終 GPU 完成畫面更新。
 
-![text](images/pipeline_fixedfunction_concept.png)
+![text](images/graphics_pipeline_fixedfunction_concept.png)
 
 這裡借用一篇好文章 ([A Trip Down The Graphics Pipeline](https://www.thecandidstartup.org/2023/03/13/trip-graphics-pipeline.html#:~:text=3D%20Graphics%20Pipeline))，使用其中的管線流程圖來更完整地講解繪圖管線工作流程。
 
@@ -63,7 +63,7 @@ GPU: Graphics Processing Unit；下圖是繪圖過程 CPU 端至 GPU 端運作�
 2D 結果畫面已完成，此階段可進行畫面後處理如反鋸齒 (Anti-Aliasing)，Gamma校正，影像濾鏡處理等。
 
 ## Legacy Fixed Function Pipeline
-![fixed](images/pipeline_fixedgraphics.svg)
+![fixed](images/graphics_pipeline_fixed.svg)
 
 同樣借用好文章介紹早期 ([1991-2000 Fixed Function Pipeline](https://www.thecandidstartup.org/2023/03/13/trip-graphics-pipeline.html#:~:text=1991%2D2000%20%3A%20The%20Fixed%20Function%20Pipeline)) 固定繪圖管線運作流程圖，圖中綠色區塊代表 CPU 端軟體層負責處理，藍色區塊代表 GPU 端硬體層完成。可看到頂點運算階段 (Vertex Processing) 列出該階段可進行處理工作 (Transform, Lighting, Projection, Clipping)；像素運算階段 (Fragment Processing) 亦列出處理工作 (Depth Test, Stencil Test, Blend, Texture Mapping)。
 

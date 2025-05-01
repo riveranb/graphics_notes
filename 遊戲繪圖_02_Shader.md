@@ -9,7 +9,7 @@
 
 ![programmable shader](images/graphics_pipeline_programmable_shaders.svg)
 
-Shader 突破了原本固定繪圖管線的限制。GPU 可執行頂點 (Vertex shader) 和像素片段 (Fragment shader) 處理單元。Graphics API，OpenGL 1.4 和 Direct3D 8 推出革命性的高階著色器語言 (High-Level Shader Language)，為 C 語言相似的語法，編譯後成為低階 Shader 組合語言程式集。
+Shader 突破了原本固定繪圖管線的限制。GPU 有頂點 (Vertex shader) 和像素片段 (Fragment shader) 2 種專門處理單元。Graphics API，OpenGL 1.4 和 Direct3D 8 推出革命性的高階著色器語言 (High-Level Shader Language)，為 C 語言相似的語法，編譯後成為低階 Shader 組合語言程式集。
 
 有了革命性的 Shader 概念後，軟體技術推出了材質 (Material) 管理 (優化編譯 Shader 流程)，並設計渲染通道 (rendering pass) 繪圖流程，完成更複雜的光照功能 (Lighting)。
 

@@ -20,7 +20,7 @@ GPU: Graphics Processing Unit；下圖是繪圖過程 CPU 端至 GPU 端運作�
 - 在光柵化之前，**幾何處理 (Geometry Processing)** 階段負責將 3D 物件的頂點進行座標轉換，包含鏡頭空間轉換、投影轉換等運算，同時也處理光照計算。
 - 整個流程的起點是 **應用階段 (Application)**，由 CPU 負責準備場景資料、處理遊戲邏輯，並發送繪圖指令給 GPU 開始渲染流程。
 
-為了電腦繪圖的目標，不同的出發點 (OpenGL | Vulkan | Direct3D | Metal | Game Engine | GPU ...) 有各自的角度闡述 Rendering Pipeline，此文章專注於傳統 GPU 架構運作概念。
+為了電腦繪圖的目標，不同的出發點 (Graphics API: OpenGL, Vulkan, Direct3D, Metal. | Game Engine | GPU ...) 有各自的角度闡述 Rendering Pipeline，此文章專注於傳統 GPU 架構運作概念。
 
 ## 繪圖管線概念
 ![alt text](images/graphics_rendering.png)

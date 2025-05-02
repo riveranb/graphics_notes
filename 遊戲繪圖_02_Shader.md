@@ -3,23 +3,23 @@
 
 ## Programmable Pipeline
 
-續文章 ([A Trip Down The Graphics Pipeline](https://www.thecandidstartup.org/2023/03/13/trip-graphics-pipeline.html#:~:text=2001%2D2005%20%3A%20Programmable%20Vertex%20and%20Fragment%20Shaders)) 中介紹可程序化繪圖管線，Shader 即一起被發明提出。
+續文章 ([A Trip Down The Graphics Pipeline](https://www.thecandidstartup.org/2023/03/13/trip-graphics-pipeline.html#text=2001-2005%20:%20Programmable%20Vertex%20and%20Fragment%20Shaders:~:text=2001%2D2005%20%3A%20Programmable%20Vertex%20and%20Fragment%20Shaders)) 中介紹可程序化繪圖管線，Shader 即一起被發明提出。
 
 ### 2001 ~ 2005 主流 Programmable Vertex & Fragment Shader
 
 ![programmable shader](images/graphics_pipeline_programmable_shaders.svg)
 
-Shader 突破了原本固定繪圖管線的限制。這時期 GPU 有頂點 (Vertex shader) 和像素片段 (Fragment shader) 2 種專門處理單元。Graphics API，OpenGL 1.4 和 Direct3D 8 推出革命性的高階著色器語言 (High-Level Shader Language)，為 C 語言相似的語法，編譯後成為低階 Shader 組合語言程式集。
+Shader 突破了原本固定繪圖管線的硬體限制。這時期 GPU 有頂點 (Vertex shader) 和像素片段 (Fragment shader) 2 種專門處理單元。Graphics API，OpenGL 1.4 和 Direct3D 8 推出革命性的高階著色器語言 (High-Level Shader Language)，為 C 語言相似的語法，編譯後成為低階 Shader 組合語言程式集。
 
-有 Shader 概念後，軟體技術推出了材質 (Material) 管理 (優化編譯 Shader 流程)，並設計渲染通道 (rendering pass) 繪圖流程，完成更複雜的光照功能 (Lighting)。
+有 Shader 概念後，軟體技術推出了材質 (Material) 管理 (優化編譯 Shader 流程)，並設計渲染通道 (rendering pass) 繪圖流程來完成多種光照功能 (Lighting)。
 
 ### 2006 ~ 2010 主流 Unified Shader Model
 
 ![unified shader](images/graphics_pipeline_unified_shader_model.svg)
 
-隨著硬體演進，統一著色器模型架構出現，只使用一種類型執行單元，由調度器動態分配頂點和片段處理工作，提高了硬體利用率。固定函數管線大部分被移除，只保留光柵化和混合操作。
+GPU 演進推出統一的 Shader 架構執行單元，實現更高度平行優化地調度執行 vertex 與 fragment shaders。
 
-OpenGL 3和Direct3D 10加入了幾何著色器，處理完整圖元並能輸出不同圖元。應用程序也開始使用延遲著色技術，通過G緩衝區儲存片段屬性，僅對可見像素計算光照，提高複雜場景的效率。
+OpenGL 3 和 Direct3D 10 推出幾何著色器 (Geometry Shader)。著名的延遲渲染 (Deferred Rendering) 技術被發明以實現複雜的(多光源)光照繪圖功能。
 
 ### 2011 ~ 2015 主流 tesselation & compute shader
 

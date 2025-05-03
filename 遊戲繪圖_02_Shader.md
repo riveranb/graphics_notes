@@ -31,9 +31,7 @@ GPU 演進推出統一的 Shader 架構執行單元，實現更高度平行優�
 
 ![gpgpu](images/graphics_pipeline_gpgpu.svg)
 
-這時期推出全新API（Direct3D 12、Vulkan），給開發者更大控制權。應用程序直接組裝GPU命令，管理CPU和GPU共享內存，計算著色器可不經CPU直接生成渲染輸入。
-
-這為GPU驅動渲染開創可能，3D場景可完全在GPU上管理，數據僅在初始加載和更新時在CPU和GPU間傳輸，大幅減輕CPU渲染負擔。
+這時期推出全新架構的 Graphics API，Direct3D 12 和 Vulkan (下一世代的 OpenGL)。新 API 賦予開發者前所未有的硬體控制能力，但同時也增加了使用複雜度。開發者現在能直接操作 GPU 命令緩衝區、精確控制 CPU 與 GPU 間的內存同步，以及自主管理數據緩衝區格式。Compute Shader 可在 GPU 上直接生成渲染所需的輸入數據，實現 GPU-Driven Rendering。
 
 ### 2021 ~ Specialized Hardware
 

@@ -19,15 +19,13 @@ Shader 突破了原本固定繪圖管線的硬體限制。這時期 GPU 有頂�
 
 GPU 演進推出統一的 Shader 架構執行單元，實現更高度平行優化地調度執行 vertex 與 fragment shaders。
 
-OpenGL 3 和 Direct3D 10 推出幾何著色器 (Geometry Shader)。著名的延遲渲染 (Deferred Rendering) 技術被發明以實現複雜的(多光源)光照繪圖功能。
+此時期推出幾何著色器 (Geometry Shader)。著名的延遲渲染 (Deferred Rendering) 技術被發明以實現複雜的(多光源)光照繪圖功能，成為主流的遊戲繪圖技術。
 
 ### 2011 ~ 2015 主流 tesselation & compute shader
 
 ![tessellation compute](images/graphics_pipeline_tesselation_compute_shader.svg)
 
-這一時期加入曲面細分著色器，可動態增加幾何細節，理論上擴展了簡化階段的硬體支持。但實際應用中，曲面細分需要特別的內容創建方式，對多數用途過於複雜。
-
-API開始支持有限的多線程，並引入計算著色器，使GPU可用於非圖形計算，如物理和模擬引擎。每幀渲染時CPU需協調計算著色器和圖形管線的工作流程。
+這時期推出曲面細分著色器 (Tesselation Shader)。Graphics API 開始支持(有限的)多線程繪圖 (Multi-Threading Rendering)。然後是推出計算著色器 (Compute Shader)，擴展 GPU 上進行非圖形渲染之通用計算。
 
 ### 2016 ~ 2020 主流 (Vulkan | Direct3D 12 | Metal) for GPGPU
 

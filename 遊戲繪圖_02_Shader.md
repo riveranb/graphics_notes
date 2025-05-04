@@ -3,7 +3,7 @@
 
 ## Programmable Pipeline
 
-續文章 ([A Trip Down The Graphics Pipeline](https://www.thecandidstartup.org/2023/03/13/trip-graphics-pipeline.html#text=2001-2005%20:%20Programmable%20Vertex%20and%20Fragment%20Shaders:~:text=2001%2D2005%20%3A%20Programmable%20Vertex%20and%20Fragment%20Shaders)) 中介紹可程序化繪圖管線，Shader 即一起被發明提出。
+續文章 ([A Trip Down The Graphics Pipeline](https://www.thecandidstartup.org/2023/03/13/trip-graphics-pipeline.html)) 中介紹可程序化繪圖管線 (Graphics Programmable Pipeline)，Shader 即一起被發明提出。接下來簡介發展史。
 
 ### 2001 ~ 2005 主流 Programmable Vertex & Fragment Shader
 
@@ -33,17 +33,100 @@ GPU 演進推出統一的 Shader 架構執行單元，實現更高度平行優�
 
 這時期推出全新架構的 Graphics API，Direct3D 12 和 Vulkan (下一世代的 OpenGL)。新 API 賦予開發者前所未有的硬體控制能力，但同時也增加了使用複雜度。開發者現在能直接操作 GPU 命令緩衝區、精確控制 CPU 與 GPU 間的內存同步，以及自主管理數據緩衝區格式。Compute Shader 可在 GPU 上直接生成渲染所需的輸入數據，實現 GPU-Driven Rendering。
 
-### 2021 ~ Specialized Hardware
+### 2021 ~ (2024+) Specialized Hardware
 
 ![specialized](images/graphics_pipeline_specialization.svg)
 
-近期創新主要在硬體，添加了兩種新型專用單元：
+GPU 硬體創新添加了 2 種新型專用單元：
+1. **RTX 核心**：硬體加速光線追蹤 (Ray Tracing)。
+2. **AI 核心**：執行預先訓練好的機器學習模型，用於後處理任務，如降噪 (適合 Ray Tracing)、抗鋸齒、上採樣、甚至生成中間幀 (Intermediate Frame) 以提升感知幀率 (Frames Per Second，FPS)。
 
-1. **RTX核心**：加速光線追蹤，用GPU特定加速結構實現高效光線-場景相交。多數應用採用混合方法，使用光柵化確定可見性，再用有限光線追蹤增強光照效果。
+另 [DirectStorage](https://github.com/microsoft/DirectStorage) 技術也允許數據直接高速從 SSD 加載到 GPU。
 
-2. **AI核心**：執行機器學習模型，用於後處理任務，如降噪、抗鋸齒、上採樣等。
+## Shader
 
-DirectStorage技術也允許數據直接高速從SSD加載到GPU，最小化CPU參與，甚至支持GPU直接解壓數據。
+![gpu rendering](images/graphics_pipeline_rendering_flow.jpg)
 
-## 總結
-從固定函數到今日的完全可程式化管線，GPU技術飛速發展。現代圖形硬體和API為遊戲開發者提供了前所未有的創意空間和表現力。
+上圖簡易示意繪圖管線的繪圖過程，下圖是更詳細的近代 Graphics Pipeline 架構流程圖。接著介紹最重要的 2 個 Shaders。預設以 OpenGL API 系列以及 GLSL 語法為前提做介紹。
+
+![gpu pipeline](images/graphics_pipeline_wiki.svg)
+
+### Vertex Shader
+
+繪圖管線中首先執行的可程式化階段，主要負責處理每個頂點的位置和屬性變換。
+
+**輸入 (Input)**:
+- `attribute`：頂點數據，如位置 (`vec3 position`)、法線 (`vec3 normal`)、紋理座標 (`vec2 texCoord`) 等...
+- `uniform`：由應用程式提供的全局變數，如變換矩陣 (`mat4 modelViewMatrix`, `mat4 projectionMatrix`)
+
+**輸出 (Output)**:
+- `varying`/`out`：傳遞給 Fragment Shader 的數據 (後續像素計算處理用)，如插值後的紋理座標、法線等。
+- `gl_Position`：必須輸出的內建變數，表示頂點在裁剪空間的位置 (4D 向量)
+
+**典型 GLSL 頂點著色器示例**:
+```glsl
+// 頂點屬性 (輸入)
+attribute vec3 position;
+attribute vec3 normal;
+attribute vec2 texCoord;
+
+// 全局變數 (輸入)
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+
+// 傳遞給片段著色器的變數 (輸出)
+varying vec2 vTexCoord;
+varying vec3 vNormal;
+
+void main() {
+    // 計算裁剪空間的頂點位置
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    
+    // 傳遞插值數據給片段著色器
+    vTexCoord = texCoord;
+    vNormal = normal;
+}
+```
+
+### Fragment Shader / Pixel Shader
+
+處理光柵化的每個像素 (片段，即一區塊的像素，如 2x2 Pixels)，決定最終的像素顏色輸出。
+
+**輸入 (Input)**:
+- `varying`/`in`：從 Vertex Shader 插值傳來的數據。
+- `uniform`：全局變數，如貼圖紋理採樣器 (`sampler2D texture`)、光照參數等...
+- `gl_FragCoord`：內建變數，表示片段在(螢幕)窗口座標中的位置。
+
+**輸出 (Output)**:
+- `gl_FragColor`：片段的最終顏色 (較新 GLSL 中為 `out vec4 fragColor`)。
+
+**典型 GLSL 片段著色器示例**:
+```glsl
+// 從頂點著色器傳來的插值數據 (輸入)
+varying vec2 vTexCoord;
+varying vec3 vNormal;
+
+// 全局變數 (輸入)
+uniform sampler2D diffuseMap;
+uniform vec3 lightDir;
+uniform vec3 lightColor;
+
+void main() {
+    // 採樣紋理
+    vec4 texColor = texture2D(diffuseMap, vTexCoord);
+    
+    // 簡單漫反射光照計算
+    vec3 normal = normalize(vNormal);
+    float diffuseFactor = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse = lightColor * diffuseFactor;
+    
+    // 最終輸出顏色
+    gl_FragColor = texColor * vec4(diffuse, 1.0);
+}
+```
+
+繪圖過程中 Vertex Shader 負責空間轉換和頂點處理，而 Fragment Shader 則處理材質、光照和最終的像素著色，共同完成一個幾何形狀 (Primitive，ex. Triangles) 之 GPU 渲染工作。
+
+# 參考延伸閱讀
+
+[A Trip Down The Graphics Pipeline](https://www.thecandidstartup.org/2023/03/13/trip-graphics-pipeline.html)

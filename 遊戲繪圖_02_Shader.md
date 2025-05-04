@@ -63,7 +63,6 @@ GPU 硬體創新添加了 2 種新型專用單元：
 - `varying`/`out`：傳遞給 Fragment Shader 的數據 (後續像素計算處理用)，如插值後的紋理座標、法線等。
 - `gl_Position`：必須輸出的內建變數，表示頂點在裁剪空間的位置 (4D 向量)
 
-**典型 GLSL 頂點著色器示例**:
 ```glsl
 // 頂點屬性 (輸入)
 attribute vec3 position;
@@ -100,7 +99,6 @@ void main() {
 **輸出 (Output)**:
 - `gl_FragColor`：片段的最終顏色 (較新 GLSL 中為 `out vec4 fragColor`)。
 
-**典型 GLSL 片段著色器示例**:
 ```glsl
 // 從頂點著色器傳來的插值數據 (輸入)
 varying vec2 vTexCoord;

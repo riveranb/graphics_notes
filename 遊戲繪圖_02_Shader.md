@@ -295,3 +295,5 @@ void main() {
 # 參考延伸閱讀
 
 [A Trip Down The Graphics Pipeline](https://www.thecandidstartup.org/2023/03/13/trip-graphics-pipeline.html)
+
+[Graphics Pipeline Wiki](https://en.wikipedia.org/wiki/Graphics_pipeline)

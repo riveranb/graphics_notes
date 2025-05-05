@@ -50,7 +50,7 @@ GPU: Graphics Processing Unit；下圖是繪圖過程 CPU 端至 GPU 端運作�
 ### 光柵化 (Rasterize)
 ![alt text](images/raster_trianglefill.png)
 
-之前文章已簡介過光柵化過程以及相關演算法。GPU 會將頂點運算階段輸出的屬性結果使用線性內差 (Linear Interpolation) 計算其涵蓋到的像素輸入資料。
+之前文章已簡介過光柵化過程以及相關演算法。GPU 會將頂點運算階段輸出的屬性結果使用線性內插 (Linear Interpolation) 計算其涵蓋到的像素輸入資料。
 
 ### 像素片段運算 (Fragment Processing)
 此階段 GPU 對每個像素 (Pixel) 計算顏色結果，過程中支援對貼圖資源存取完成貼圖顏色映射運算 (Texture Mapping)，並更新到繪圖目標畫面 (Render Target) 的指定像素。Render Target 是一段配置好的連續記憶體緩衝區，因此也稱為 Frame Buffer。此階段在更新目標像素時還會做深度測試檢查 (Depth/Z Test)，正常來說繪製不透明物件時，會將新的像素位置計算得到的深度 (距離鏡頭之深度) 與原本 Render Target 上的像素深度做比較，如果新的像素位置比較近才進行像素結果更新，代表新的像素可以被畫到目標畫面上，反之代表新的像素比較遠已經被原本的像素擋住。除了深度測試外也可以指定進行遮罩測試檢查 (Stencil Test)，運作原理相近。最終進行更新目標像素資料時，除了直接取代新顏色外，也可使用指定透明度進行透明顏色混合運算 (Alpha Blend)，達成透明物件繪圖功能。

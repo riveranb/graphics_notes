@@ -12,6 +12,8 @@
 
 將 2D 圖像 (Texture) 映射到 3D 模型表面的技術，讓模型表面呈現更豐富的視覺效果。
 
+![texturemapping](images/texturemapping_uv.png)
+
 ### 貼圖座標 UV Coordinates
 
 貼圖座標系統使用 U、V 兩個軸向來定位貼圖上的像素位置，U 代表水平方向，V 代表垂直方向，座標範圍為 [0,1]。

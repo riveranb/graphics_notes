@@ -1,9 +1,16 @@
-# 遊戲開發 - 繪圖渲染
+# 遊戲開發 - Texture Mapping
+
+繪圖過程 Fragment Shader 最終要計算出像素的顏色結果。一般來說顏色可由模型中的頂點顏色 (Vertex Color) 決定，也可以通過材質 (Material) 資料指定的顏色，再來還有來自指定貼圖 (Texture) 的顏色。指定一張貼圖將其色彩映射到指定的模型三角面上的技術即是貼圖映射 (Texture Mapping)。
+
+![alt text](images/mesh_texturemapping.png)
+
+## 貼圖資源 Texture
+
+貼圖 (Texture) 資源是指用於描述模型表面細節的影像 (Image) 資源，通常以 2D 圖像的形式存儲，常見的貼圖檔案格式包括 BMP、PNG、JPEG、DDS、KTX 等。貼圖可以儲存各種不同目的之資訊，如基本色彩 (Base Color/Diffuse/Albedo)、法線 (Normal)、高光 (Specular)、粗糙度 (Roughness) 等。
+
 ## 貼圖映射 Texture Mapping
 
-貼圖映射是將 2D 圖像 (Texture) 映射到 3D 模型表面的技術，讓模型表面呈現更豐富的視覺效果。
-
-![alt text](images/texture_mapping_overview.png)
+將 2D 圖像 (Texture) 映射到 3D 模型表面的技術，讓模型表面呈現更豐富的視覺效果。
 
 ### 貼圖座標 UV Coordinates
 

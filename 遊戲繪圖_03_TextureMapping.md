@@ -8,6 +8,8 @@
 
 貼圖 (Texture) 資源是指用於描述模型表面細節的影像 (Image) 資源，通常以 2D 圖像的形式存儲，常見的貼圖檔案格式包括 BMP、PNG、JPEG、DDS、KTX 等。貼圖可以儲存各種不同目的之資訊，如基本色彩 (Base Color/Diffuse/Albedo)、法線 (Normal)、高光 (Specular)、粗糙度 (Roughness) 等。
 
+軟體程式從硬碟讀取指定影像檔案，將原始像素資訊轉換為 GPU 可識別的格式並上傳至 GPU 顯示記憶體，綁定為貼圖資源物件供 GPU 繪圖用，並且設定其過濾模式 (Filtering)、環繞模式 (Warp) 與 Mipmap 生成等相關 GPU 狀態參數。
+
 ## 貼圖映射 Texture Mapping
 
 將 2D 圖像 (Texture) 映射到 3D 模型表面的技術，讓模型表面呈現更豐富的視覺效果。

@@ -27,7 +27,7 @@ GPU: Graphics Processing Unit；下圖是繪圖過程 CPU 端至 GPU 端運作�
 
 ![alt text](images/render_3dviewing.png)
 
-之前文章已介紹繪圖所需完成的工作流程，早期 GPU 搭配電腦圖學函式庫 (Graphics API) 實現一套固定繪圖管線 (Fixed Function Rendering Pipeline)，運作過程 GPU 執行固定不變的繪圖工作，圖學函式庫可有限制地控制 GPU 工作狀態。下方示意圖中，軟體應用程式需要準備好繪圖資訊 (Mesh Buffer, Vertex and Index lists)，指定頂點如何完成座標轉換並可實現頂點的光照運算 (Transform & Lighting)，然後將這些幾何單元資訊傳遞至 GPU 端 (Assmbly of Primitives)，GPU 進行 Rasterization 工作，並支援存取指定貼圖 (Texture Operations) 計算出貼圖顏色，最終算出像素顏色結果寫入至目標畫面 (繪圖緩衝區，Frame Buffer)，最終 GPU 完成畫面更新。
+之前文章已介紹繪圖所需完成的工作流程，早期 GPU 搭配電腦圖學函式庫 (Graphics API) 實現一套固定繪圖管線 (Fixed Function Rendering Pipeline)，運作過程 GPU 執行固定不變的繪圖工作，圖學函式庫可有限制地控制 GPU 工作狀態。下方示意圖中，軟體應用程式需要準備好繪圖資訊 (Mesh Buffer, Vertex Buffer and Index Buffer)，指定頂點如何完成座標轉換並可實現頂點的光照運算 (Transform & Lighting)，然後將這些幾何單元資訊傳遞至 GPU 端 (Assmbly of Primitives)，GPU 進行 Rasterization 工作，並支援存取指定貼圖 (Texture Operations) 計算出貼圖顏色，最終算出像素顏色結果寫入至目標畫面 (繪圖緩衝區，Frame Buffer)，最終 GPU 完成畫面更新。
 
 ![text](images/graphics_pipeline_fixedfunction_concept.png)
 

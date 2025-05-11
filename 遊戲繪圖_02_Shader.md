@@ -9,15 +9,15 @@
 
 ![programmable shader](images/graphics_pipeline_programmable_shaders.svg)
 
-Shader 突破了原本固定繪圖管線的硬體限制。這時期 GPU 有頂點 (Vertex shader) 和像素片段 (Fragment shader) 2 種專門處理單元。Graphics API，OpenGL 1.4 和 Direct3D 8 推出革命性的高階著色器語言 (High-Level Shader Language)，為 C 語言相似的語法，編譯後成為低階 Shader 組合語言程式集。
+Shader 突破了原本固定繪圖管線的硬體限制。這時期 GPU 有頂點 (Vertex Shader) 和像素片段 (Fragment Shader) 2 種專門處理單元。Graphics API，OpenGL 1.4 和 Direct3D 8 推出革命性的高階著色器語言 (High-Level Shader Language)，為 C 語言相似的語法，編譯後成為低階 Shader 組合語言程式集。
 
-有 Shader 概念後，軟體技術推出了材質 (Material) 管理 (優化編譯 Shader 流程)，並設計渲染通道 (rendering pass) 繪圖流程來完成多種光照功能 (Lighting)。
+有 Shader 概念後，軟體技術推出了材質 (Material) 管理 (優化編譯 Shader 流程)，並設計渲染通道 (Rendering Pass) 繪圖流程來完成多種光照功能 (Lighting)。
 
 ### 2006 ~ 2010 主流 Unified Shader Model
 
 ![unified shader](images/graphics_pipeline_unified_shader_model.svg)
 
-GPU 演進推出統一的 Shader 架構執行單元，實現更高度平行優化地調度執行 vertex 與 fragment shaders。
+GPU 演進推出統一的 Shader 架構執行單元，實現更高度平行優化地調度執行 Vertex 與 Fragment Shaders。
 
 此時期推出幾何著色器 (Geometry Shader)。著名的延遲渲染 (Deferred Rendering) 技術被發明以實現複雜的(多光源)光照繪圖功能，成為主流的遊戲繪圖技術。
 
@@ -91,7 +91,7 @@ void main() {
 
 ### Fragment Shader / Pixel Shader
 
-處理經過光柵化階段 (Rasterization) 產生的每個片段 (Fragment of Pixels)，計算最終的像素顏色輸出。片段對應於屏幕上的一個像素位置，但在現代 GPU 中通常以 2x2 像素區塊為單位並行處理。
+處理經過光柵化階段 (Rasterization) 產生的每個片段 (Fragment of Pixels)，計算最終的像素顏色 (Color: red, green, blue, alpha) 輸出。片段對應於屏幕上的一個像素位置，但在現代 GPU 中通常以 2x2 像素區塊為單位並行處理。
 
 **輸入 (Input)**:
 - `varying`/`in`：從 Vertex Shader 線性插值傳來的數據。

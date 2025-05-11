@@ -27,7 +27,7 @@ GPU: Graphics Processing Unit；下圖是繪圖過程 CPU 端至 GPU 端運作�
 
 ![alt text](images/render_3dviewing.png)
 
-之前文章已介紹繪圖所需完成的工作流程，早期 GPU 搭配電腦圖學函式庫 (Graphics API) 實現一套固定繪圖管線 (Fixed Function Rendering Pipeline)，運作過程 GPU 執行固定不變的繪圖工作，圖學函式庫可有限制地控制 GPU 工作狀態。下方示意圖中，軟體應用程式需要準備好繪圖資訊 (vertex and index lists)，指定頂點如何完成座標轉換並可實現頂點的光照運算 (transform & lighting)，然後將這些幾何單元資訊傳遞至 GPU 端 (assmbly of primitives)，GPU 進行 rasterization 工作，並支援存取指定貼圖 (texture operations) 計算出貼圖顏色，最終算出像素顏色結果寫入至目標畫面 (繪圖緩衝區，Frame Buffer)，最終 GPU 完成畫面更新。
+之前文章已介紹繪圖所需完成的工作流程，早期 GPU 搭配電腦圖學函式庫 (Graphics API) 實現一套固定繪圖管線 (Fixed Function Rendering Pipeline)，運作過程 GPU 執行固定不變的繪圖工作，圖學函式庫可有限制地控制 GPU 工作狀態。下方示意圖中，軟體應用程式需要準備好繪圖資訊 (Mesh Buffer, Vertex and Index lists)，指定頂點如何完成座標轉換並可實現頂點的光照運算 (Transform & Lighting)，然後將這些幾何單元資訊傳遞至 GPU 端 (Assmbly of Primitives)，GPU 進行 Rasterization 工作，並支援存取指定貼圖 (Texture Operations) 計算出貼圖顏色，最終算出像素顏色結果寫入至目標畫面 (繪圖緩衝區，Frame Buffer)，最終 GPU 完成畫面更新。
 
 ![text](images/graphics_pipeline_fixedfunction_concept.png)
 
@@ -45,7 +45,7 @@ GPU: Graphics Processing Unit；下圖是繪圖過程 CPU 端至 GPU 端運作�
 此階段可進行依視角決定資料複雜度的優化處理，主要技術如 Level of Detail (較遠、較小的物件採取低複雜度資料輕量的內容傳送給 GPU 端進行繪圖工作)。
 
 ### 頂點運算 (Vertex Processing)
-此階段 GPU 已經接收到繪圖對象的幾何單元資訊 (三角形 (Triangle) | 線段 (Line) | 點 (Point))，並且得到一組頂點輸入資料。每個頂點帶有座標位置資訊 (X, Y, Z)，並可帶有軟體程式指定的額外頂點屬性 (Vertex Attribute)，如顏色 (Color)、法向量 (Normal Vector)、貼圖指定坐標 (U, V) 等。GPU 負責將頂點計算投影至目標 2D 投影空間的像素座標位置，並且可指定進行光照運算 (Lighting)，還有針對螢幕可視範圍進行幾何裁切 (Clipping) 避免繪圖區域跑出螢幕可視區域外。運算完成時 GPU 將頂點運算結果儲存到指定的頂點屬性輸出暫存器 (Output Vertex Attributes)。
+此階段 GPU 已經接收到繪圖對象的幾何單元資訊 (三角形 (Triangle) | 線段 (Line) | 點 (Point))，並且得到一組頂點輸入資料。每個頂點帶有座標位置資訊 (x, y, z)，並可帶有軟體程式指定的額外頂點屬性 (Vertex Attribute)，如顏色 (Color: red, green, blue, alpha)、法向量 (Normal Vector)、貼圖指定坐標 (u, v) 等。GPU 負責將頂點計算投影至目標 2D 投影空間的像素座標位置，並且可指定進行光照運算 (Lighting)，還有針對螢幕可視範圍進行幾何裁切 (Clipping) 避免繪圖區域跑出螢幕可視區域外。運算完成時 GPU 將頂點運算結果儲存到指定的頂點屬性輸出暫存器 (Output Vertex Attributes)。
 
 ### 光柵化 (Rasterize)
 ![alt text](images/raster_trianglefill.png)

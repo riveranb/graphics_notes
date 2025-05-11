@@ -1,6 +1,6 @@
 # 遊戲開發 - Texture Mapping
 
-繪圖過程 Fragment Shader 最終要計算出像素的顏色結果。一般來說顏色可由模型中的頂點顏色 (Vertex Color) 決定，也可以通過材質 (Material) 資料指定的顏色，再來還有來自指定貼圖 (Texture) 的顏色。指定一張貼圖將其色彩映射到指定的模型三角面上的技術即是貼圖映射 (Texture Mapping)。
+繪圖過程 Fragment Shader 最終要計算出像素的顏色 (Color: [red, green, blue, alpha]) 結果。一般來說顏色可由模型中的頂點顏色 (Vertex Color) 決定，也可以通過材質 (Material) 資料指定的顏色，再來還有來自指定貼圖 (Texture) 的顏色。指定一張貼圖將其色彩映射到指定的模型三角面上的技術即是貼圖映射 (Texture Mapping)。
 
 ![alt text](images/mesh_texturemapping.png)
 

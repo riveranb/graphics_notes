@@ -14,6 +14,8 @@
 
 將 2D 圖像 (Texture) 映射到 3D 模型表面的技術，讓模型表面呈現更豐富的視覺效果。
 
+早期 Rasterization 流程像素顏色由 Vertex Color 經過線性插值或由材質 (Material) 指定的固定顏色決定。隨著視覺需求提升因而提出 Texture Mapping 技術：在 Fragment Shader 中使用 Vertex Shader 端輸入的 UV 座標對指定 2D 貼圖進行採樣 (Texture Sampling)，獲取對應位置的貼圖紋理像素顏色 (Texel Color)，可用在與其他顏色資訊混合輸出豐富像素顏色結果。
+
 ![texturemapping](images/texturemapping_uv.png)
 
 ### 貼圖座標 UV Coordinates

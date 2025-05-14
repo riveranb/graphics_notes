@@ -18,11 +18,11 @@
 
 ![texturemapping](images/texturemapping_uv.png)
 
-### 貼圖座標 UV Coordinates
+### UV Coordinates
 
 貼圖座標系統使用 U、V 兩個軸向來定位貼圖上的像素位置，U 軸代表影像水平方向，V 軸代表影像垂直方向，座標範圍為 [0, 1]。UV 座標（Texture Coordinate）的原點通常位於貼圖的左下角（視不同 Graphics API 而定）。模型中每個頂點除了帶有物件空間位置（Object Space Coordinate），還會定義對應的 UV 座標，用於指定該頂點在映射貼圖上的採樣位置。
 
-### 貼圖採樣 Texture Sampling
+### Texture Sampling
 
 在 Rasterization (光柵化)階段，GPU 對三角形內部每個像素進行線性插值計算出 UV 座標，並根據指定貼圖綁定時設定的過濾 (Texture Filtering) 與環繞模式 (Texture Wrap Mode) 參數，使用 GPU 硬體採樣單元 (Texture Sampler/Texture Mapping Unit, TMU) 讀取對應位置的顏色值（Texel: [r, g, b, a]）。
 
@@ -45,7 +45,7 @@
    - 優點：改善斜向紋理的清晰度
    - 缺點：計算量較大
 
-### 貼圖壓縮 Texture Compression
+### 壓縮 Texture Compression
 
 為了減少記憶體使用和頻寬消耗，貼圖通常會進行壓縮：
 

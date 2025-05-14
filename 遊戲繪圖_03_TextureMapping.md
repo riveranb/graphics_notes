@@ -20,19 +20,13 @@
 
 ### 貼圖座標 UV Coordinates
 
-貼圖座標系統使用 U、V 兩個軸向來定位貼圖上的像素位置，U 代表水平方向，V 代表垂直方向，座標範圍為 [0,1]。
-
-![alt text](images/uv_coordinates.png)
-
-每個頂點除了位置座標外，還需要定義對應的 UV 座標，用於指定該頂點在貼圖上的採樣位置。
+貼圖座標系統使用 U、V 兩個軸向來定位貼圖上的像素位置，U 軸代表影像水平方向，V 軸代表影像垂直方向，座標範圍為 [0, 1]。UV 座標（Texture Coordinate）的原點通常位於貼圖的左下角（視不同 Graphics API 而定）。模型中每個頂點除了帶有物件空間位置（Object Space Coordinate），還會定義對應的 UV 座標，用於指定該頂點在映射貼圖上的採樣位置。
 
 ### 貼圖採樣 Texture Sampling
 
-在光柵化過程中，對於三角形內部的每個像素，需要根據三個頂點的 UV 座標進行線性內插，計算出該像素在貼圖上的採樣位置。
+在 Rasterization (光柵化)階段，GPU 對三角形內部每個像素進行線性插值計算出 UV 座標，並根據指定貼圖綁定時設定的過濾 (Texture Filtering) 與環繞模式 (Texture Wrap Mode) 參數，使用 GPU 硬體採樣單元 (Texture Sampler/Texture Mapping Unit, TMU) 讀取對應位置的顏色值（Texel: [r, g, b, a]）。
 
-![alt text](images/texture_sampling.png)
-
-### 貼圖過濾 Texture Filtering
+### Texture Filtering
 
 由於貼圖解析度與螢幕像素解析度可能不同，在採樣時需要進行過濾處理：
 
@@ -51,26 +45,6 @@
    - 優點：改善斜向紋理的清晰度
    - 缺點：計算量較大
 
-![alt text](images/texture_filtering.png)
-
-### 多重貼圖 Multiple Textures
-
-一個模型表面可以同時使用多張貼圖來實現更複雜的視覺效果：
-
-1. 漫反射貼圖 (Diffuse/Albedo Map)
-   - 定義物體表面的基本顏色
-
-2. 法線貼圖 (Normal Map)
-   - 通過改變表面法線方向來模擬細節凹凸
-
-3. 高光貼圖 (Specular Map)
-   - 控制表面反光強度
-
-4. 粗糙度貼圖 (Roughness Map)
-   - 控制表面粗糙程度
-
-![alt text](images/multiple_textures.png)
-
 ### 貼圖壓縮 Texture Compression
 
 為了減少記憶體使用和頻寬消耗，貼圖通常會進行壓縮：
@@ -83,23 +57,6 @@
    - 允許一定程度的品質損失
    - 壓縮率較高
    - 常用格式：DXT、ETC、ASTC
-
-### 貼圖優化 Texture Optimization
-
-1. 貼圖大小
-   - 根據實際需求選擇適當的解析度
-   - 避免過大的貼圖造成記憶體浪費
-
-2. 貼圖合併
-   - 將多個小貼圖合併成一張大貼圖
-   - 減少 Draw Call 次數
-
-3. Mipmap
-   - 預先生成不同解析度的貼圖
-   - 根據距離動態選擇適當的解析度
-   - 改善遠處物體的渲染品質
-
-![alt text](images/mipmap.png)
 
 # 參考延伸閱讀
 

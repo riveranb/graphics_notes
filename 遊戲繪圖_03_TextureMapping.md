@@ -8,7 +8,7 @@
 
 貼圖 (Texture) 資源是指用於描述模型表面細節紋理的影像 (Image) 資源，通常以 2D 圖像的形式儲存，常見的貼圖檔案格式包括 BMP、PNG、JPEG、DDS、KTX 等。貼圖可以儲存各種不同目的之資訊，如基本色彩 (Base Color/Diffuse/Albedo)、法線 (Normal)、高光 (Specular)、粗糙度 (Roughness) 等。
 
-軟體程式從硬碟讀取指定影像檔案，將原始像素資訊轉換為 GPU 可識別的格式並上傳至 GPU 顯示記憶體，綁定為貼圖資源物件供 GPU 繪圖用，並可設定其過濾模式 (Filtering)、環繞模式 (Warp) 與多層級紋理 (Mipmap) 生成等相關 GPU 狀態參數。
+軟體程式從硬碟讀取指定影像檔案，將原始像素資訊轉換為 GPU 可識別的格式並上傳至 GPU 顯示記憶體，綁定為貼圖資源物件供 GPU 繪圖用，並可設定其過濾模式 (Filtering)、環繞模式 (Wrapping) 與多層級紋理 (Mipmap) 生成等相關 GPU 狀態參數。
 
 ## 貼圖映射 Texture Mapping
 
@@ -24,45 +24,40 @@
 
 ### Texture Sampling
 
-在 Rasterization (光柵化)階段 GPU 對三角形內部每個像素進行線性插值計算出 UV 座標，並根據指定貼圖綁定時設定的過濾 (Texture Filtering) 與環繞模式 (Texture Wrap Mode) 參數，使用 GPU 硬體採樣單元 (Texture Sampler/Texture Mapping Unit, TMU) 讀取對應位置的顏色值（Texel: [r, g, b, a]）。
+在 Rasterization (光柵化)階段 GPU 對三角形內部每個像素進行線性插值計算出 UV 座標，並根據指定貼圖綁定時設定的過濾 (Texture Filtering) 與環繞模式 (Texture Wrapping) 參數，使用 GPU 貼圖採樣單元 (Texture Sampler/Texture Mapping Unit, TMU) 讀取對應位置的顏色值（Texel: [r, g, b, a]）。
 
-例如 Fragment Shader 階段計算得到 UV 座標為 [0.5, 0.5]，對一張 100×100 之綁定貼圖採樣，相當於讀取(取樣)該貼圖影像中 [50, 50] 的紋理元素回傳為 Texel Color。
+例如 Fragment Shader 階段計算得到 UV 座標為 [0.5, 0.5]，對一張解析度 100×100 之綁定貼圖採樣，相當於讀取(取樣)該貼圖影像中 [50, 50] 的紋理元素回傳為 Texel Color。
 
 ### Texture Filtering
 
-貼圖過濾 (Texture Filtering) 用於改善採樣結果，當貼圖解析度與顯示解析度不一致時，透過不同的過濾算法平滑或細化取樣結果，減少鋸齒或模糊現象。常見的過濾模式如下：
+貼圖過濾功能，透過不同的過濾算法平滑或細化取樣結果，達到減少鋸齒或模糊現象。
 
-1. 最近點採樣 (Nearest Point Sampling)
-   - 直接取最接近的貼圖像素值
-   - 優點：計算簡單
-   - 缺點：可能產生鋸齒狀邊緣
-
+1. 最近點採樣 (Nearest Point)
+   - 直接取最接近的貼圖像素值；優點：計算簡單；缺點：鋸齒狀邊緣(像素風格)。
 2. 線性過濾 (Linear Filtering)
-   - 對相鄰的貼圖像素進行線性內插
-   - 優點：平滑的過渡效果
-   - 缺點：可能造成模糊
-
+   - 對相鄰的貼圖像素線性內插；優點：平滑過渡效果；缺點：可能造成模糊。
 3. 各向異性過濾 (Anisotropic Filtering)
-   - 考慮視角方向的過濾方式
-   - 優點：改善斜向紋理的清晰度
-   - 缺點：計算量較大
+   - 考慮視角方向的過濾方式；優點：改善斜向紋理的清晰度；缺點：計算量較大。
+
+### Texture Wrapping
+
+環繞模式決定當 UV 座標超出 [0, 1] 範圍時如何處理。
+
+1. 重複 (Repeat)：超出範圍的 UV 的小數部分用於重複採樣貼圖
+2. 鏡像重複 (Mirrored Repeat)
+3. 剪裁至邊界 (Clamp)：當 UV 值超出 [0, 1] 範圍時，坐標被限制在邊界值（0 或 1），並採樣貼圖邊緣像素。
 
 ### Texture Mipmapping
 
-多級紋理貼圖 (Mipmap) 是在貼圖資源中預先生成一系列不同解析度的貼圖層級，每層解析度依次減半。渲染階段會根據片段與攝影機的距離或貼圖縮放因子，自動選擇最合適的 Mipmap 層進行採樣，能有效降低鋸齒與閃爍，同時提升過濾效率與渲染效能。
+多級紋理貼圖 (Mipmap) 是在貼圖資源中預先生成一組逐級降低解析度的貼圖，後續層級的尺寸皆為前一層的一半，直到最小為 1×1。例如對於一張解析度 512×512 的貼圖，會依次生成 512x512、256x256、128x128、64x64、32x32、16x16、8x8、4x4、2x2、1x1 共 10 個層級。注意：因需要額外準備多個層級的紋理貼圖故需要更多記憶體佔用量 (平均約多 33%)。
 
-### Texture Compression
+Fragment Shader 階段時依據像素片段在螢幕上的紋理覆蓋度（Texture Footprint）動態計算層級細節 (Level of Detail, LOD) 決定對應的 Mipmap 層進行 Texture Mapping，以選用最匹配顯示比例的貼圖解析度，改善高頻細節取樣不足所產生的鋸齒 (Aliasing) 及閃爍 (Shimmering) 現象。
 
-為了減少記憶體使用和頻寬消耗，貼圖通常會進行壓縮：
-
-1. 無損壓縮
-   - 保持原始圖像品質
-   - 壓縮率較低
-
-2. 有損壓縮
-   - 允許一定程度的品質損失
-   - 壓縮率較高
-   - 常用格式：DXT、ETC、ASTC
+常見的 Mipmap 採樣策略包括：
+- GL_NEAREST_MIPMAP_NEAREST：選擇最接近的層級後，對該層使用最近點過濾。
+- GL_LINEAR_MIPMAP_NEAREST：選擇最接近的層級後，對該層使用線性過濾。
+- GL_NEAREST_MIPMAP_LINEAR：在兩個最接近層級之間先進行層級插值，再對結果使用最近點過濾。
+- GL_LINEAR_MIPMAP_LINEAR：在兩個最接近層級之間先進行層級插值，再對結果使用線性過濾（又稱 Trilinear 過濾）。
 
 # 參考延伸閱讀
 

@@ -8,11 +8,13 @@
 
 貼圖 (Texture) 資源是指用於描述模型表面細節紋理的影像 (Image) 資源，通常以 2D 圖像的形式儲存，常見的貼圖檔案格式包括 BMP、PNG、JPEG、DDS、KTX 等。貼圖可以儲存各種不同目的之資訊，如基本色彩 (Base Color/Diffuse/Albedo)、法線 (Normal)、高光 (Specular)、粗糙度 (Roughness) 等。
 
+![textures](images/textures_pbr.png)
+
 軟體程式從硬碟讀取指定影像檔案，將原始像素資訊轉換為 GPU 可識別的格式並上傳至 GPU 顯示記憶體，綁定為貼圖資源物件供 GPU 繪圖用，並可設定其過濾模式 (Filtering)、環繞模式 (Wrapping) 與多層級紋理 (Mipmap) 生成等相關 GPU 狀態參數。
 
 ### Texel
 
-Texel（Texture Element）是貼圖的最小取樣單位，相當影像中的像素。Texel 通常以 4 分量向量儲存數據，如顏色 ([r, g, b, a]) 或其他自訂資訊 ([x, y, z, w])。影像檔案的顏色通常採用 sRGB（伽瑪）色彩空間儲存。
+Texel（Texture Element）是貼圖的最小取樣單位，相當影像中的像素。Texel 通常以 4 分量向量儲存數據，如顏色 ([r, g, b, a]) 或其他自訂資訊 ([x, y, z, w])。影像檔案的顏色通常採用 sRGB (伽瑪色彩空間，Gamma Color Space) 儲存。
 
 ## 貼圖映射 Texture Mapping
 
@@ -20,15 +22,19 @@ Texel（Texture Element）是貼圖的最小取樣單位，相當影像中的像
 
 早期 Rasterization 流程像素顏色由 Vertex Color 經過線性插值或由材質 (Material) 指定決定。隨著視覺需求提升因而提出 Texture Mapping 技術：在 Fragment Shader 中使用 Vertex Shader 端輸入的 UV 座標對指定 2D 貼圖進行採樣 (Texture Sampling)，獲取對應位置的貼圖紋理像素顏色 (Texel Color)，可用在與其他顏色資訊混合輸出豐富像素顏色結果。
 
-![texturemapping](images/texturemapping_uv.png)
+![texturemapping](images/texturemapping.png)
 
 ### UV Coordinates
+
+![uv](images/texturemapping_uv.gif)
 
 貼圖座標系統使用 U、V 兩個軸向來定位貼圖上的像素位置，U 軸代表影像水平方向，V 軸代表影像垂直方向，座標範圍為 [0, 1]。UV 座標（Texture Coordinate）的原點通常位於貼圖的左下角或左上角（視不同 Graphics API 而定）。模型中每個頂點除了帶有物件空間位置（Object Space Coordinate），還會定義對應的 UV 座標，用於指定該頂點在映射貼圖上的採樣位置。
 
 ### Texture Sampling
 
 在 Rasterization (光柵化)階段 GPU 對三角形內部每個像素進行線性插值計算出 UV 座標，並根據指定貼圖綁定時設定的過濾 (Texture Filtering) 與環繞模式 (Texture Wrapping) 參數，使用 GPU 貼圖採樣單元 (Texture Sampler/Texture Mapping Unit, TMU) 讀取對應位置的顏色值（Texel: [r, g, b, a]）。
+
+![sampling](images/texturemapping_sampling.png)
 
 例如 Fragment Shader 階段計算得到 UV 座標為 [0.5, 0.5]，對一張解析度 100×100 之綁定貼圖採樣，相當於讀取(取樣)該貼圖影像中 [50, 50] 的紋理元素回傳為 Texel Color。
 

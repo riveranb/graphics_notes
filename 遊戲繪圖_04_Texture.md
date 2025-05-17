@@ -71,3 +71,4 @@ Fragment Shader 階段時依據像素片段在螢幕上的紋理覆蓋度（Text
 
 # 參考延伸閱讀
 
+[Texture Mapping Lecture](https://www.labs.cs.uregina.ca/315/WebGL2/Lab8/)

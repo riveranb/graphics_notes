@@ -89,7 +89,7 @@ Fragment Shader 階段時依據像素片段在螢幕上的紋理覆蓋度（Text
 
 ![mipmapping](images/texturemapping_mipmapping_lod.png)
 
-Mipmapping 採樣策略包括：
+Mipmapping 採樣策略包括：(以 OpenGL 參數為例)
 - GL_NEAREST_MIPMAP_NEAREST：選擇最接近的層級後，對該層使用最近點過濾。
 - GL_LINEAR_MIPMAP_NEAREST：選擇最接近的層級後，對該層使用線性過濾。
 - GL_NEAREST_MIPMAP_LINEAR：在兩個最接近層級之間先進行層級插值，再對結果使用最近點過濾。
@@ -102,3 +102,5 @@ Mipmapping 採樣策略包括：
 [Texture Mapping Lecture](https://www.labs.cs.uregina.ca/315/WebGL2/Lab8/)
 
 [Learn OpenGL Textures](https://learnopengl.com/Getting-started/Textures)
+
+[Learning Modern 3D Graphics Programming - Chapter 15. Many Images](https://paroj.github.io/gltut/Texturing/Tut15%20Needs%20More%20Pictures.html)

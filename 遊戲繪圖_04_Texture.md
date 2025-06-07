@@ -42,6 +42,8 @@ U 軸為影像水平方向，V 軸為影像垂直方向，座標範圍為 [0, 1]
 
 ### Texture Filtering
 
+![filtering](images/cocoscreator_texture_filtermode.png)
+
 貼圖過濾功能，透過不同的過濾算法平滑或細化取樣結果，達到減少鋸齒或模糊現象。
 
 1. 最近點採樣 (Nearest Point)
@@ -60,6 +62,8 @@ U 軸為影像水平方向，V 軸為影像垂直方向，座標範圍為 [0, 1]
 ![anisotropic](images/texturemapping_filtering_vs_anisotropic.png)
 
 ### Texture Wrapping
+
+![wrapmode](images/cocoscreator_texture_wrapmode.png)
 
 環繞模式決定當 UV 座標超出 [0, 1] 範圍時如何處理。
 

@@ -143,8 +143,33 @@ if(dirty) {
 }
 ```
 
-## 骨骼蒙皮模型 SkinnedMeshRenderer
+## 骨骼蒙皮模型渲染 SkinnedMeshRenderer
 
+MeshRenderer 組件提供靜態的幾何模型 (Solid Mesh) 繪圖功能。除此之外，透過骨骼系統控制模型表面變形的模型，稱為骨骼蒙皮模型 (Skinning Mesh) 技術。
+
+### Skinning Mesh
+
+針對模型建立骨架結構 (Skeleton)，將頂點綁定對應控制骨骼 (Bone | Joint)，便可從骨架運動控制蒙皮頂點動畫。
+
+**蒙皮 (Skinning)** 技術重點
+- **骨架結構**：骨骼以樹狀層級組織，形成角色的骨架 (Skeleton)
+- **頂點權重**：每個頂點可受多個骨骼影響，權重值決定影響程度
+- **動態變形**：骨骼運動時，相關頂點根據權重進行位置計算
+
+**SkinnedMeshRenderer** 即負責管理 Skinning Mesh 相關資源 (Skinned Mesh & Skeleton) 與實現蒙皮動畫繪圖功能。
+
+--------------------------------------------------------------
+|  項目           |  MeshRenderer    | SkinnedMeshRenderer    |
+|----------------|------------------|------------------------|
+|  **模型類型**   |  Solid            |  Skinned              |
+|  **動畫**       |  節點 (Node)      |  骨骼 (Skeleton)       |
+|  **頂點計算**   |  靜態             |  動態蒙皮 (計算成本高)    |
+|  **適用**       |  建築、道具        |  角色、生物             |
+--------------------------------------------------------------
+
+![SkinnedMeshRenderer](images/cocoscreator_skinnedmeshrenderer_inspector.png)
+
+SkinnedMeshRenderer 是現代遊戲實現生動角色表現的核心技術，雖然計算成本較 MeshRenderer 高，但帶來了豐富的動態表現力。GPU Skinning 技術則被提出來針對 Skinning 動畫計算進行效能優化。
 
 # 參考延伸閱讀
 

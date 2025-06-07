@@ -62,4 +62,92 @@ GPU 透過 3 核心緩衝區 (Buffer) 來高效處理 Mesh 資料，以 OpenGL A
 
 ![MeshRenderer](images/cocoscreator_meshrenderer_inspector.png)
 
-## SkinnedMeshRenderer
+### 程序化 Mesh
+
+Cocos Creator 可程序化創建網格，適用於需要動態生成幾何體，如可成長的植物、地形變形、動態建築等。Cocos Creator 提供 2 網格類型：
+
+**靜態網格**：透過 `utils.MeshUtils.createMesh` 創建，一旦建立後幾何體不可編輯
+**動態網格**：透過 `utils.MeshUtils.createDynamicMesh` 創建，建立後仍可修改幾何體
+
+```typescript
+import { _decorator, Component, MeshRenderer, utils, gfx, Vec3 } from 'cc';
+
+// 建立程序化三角形網格
+createTriangleMesh() {
+    // 定義頂點資料
+    const positions = [
+        -1, -1, 0,  // 左下頂點
+            1, -1, 0,  // 右下頂點  
+            0,  1, 0   // 頂部頂點
+    ];
+    // 定義法線資料
+    const normals = [
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1
+    ];
+    // 定義 UV 座標
+    const uvs = [
+        0, 0,    // 左下
+        1, 0,    // 右下
+        0.5, 1   // 頂部
+    ];
+    // 定義索引
+    const indices = [0, 1, 2];
+    // 建立靜態網格
+    const mesh = utils.MeshUtils.createMesh({
+        positions,
+        normals,
+        uvs,
+        indices,
+        primitiveMode: gfx.PrimitiveMode.TRIANGLE_LIST
+    });
+    // 套用到 MeshRenderer
+    const meshRenderer = this.getComponent(MeshRenderer);
+    if (meshRenderer) {
+        meshRenderer.mesh = mesh;
+    }
+}
+
+/* 程序化動態 Mesh 示範 */
+
+// ...
+// 創建 utils.MeshUtils.createDynamicMesh()
+for (let i = 0; i < this._options.maxSubMeshes; i++) {
+    let geometry: primitives.IDynamicGeometry = {
+        positions: this._subMeshes[i].positions,
+        normals: this._subMeshes[i].normals,
+        minPos: this._subMeshes[i].minPos,
+        maxPos: this._subMeshes[i].maxPos,
+    }
+    this._geometries.push(geometry);
+}
+const mesh = utils.MeshUtils.createDynamicMesh(0, this._geometries[0], undefined, this._options);
+for (let i = 1; i < this._options.maxSubMeshes; i++) {
+    mesh.updateSubMesh(i, this._geometries[i]);
+}
+const meshRenderer = this._dragon.getComponent(MeshRenderer) as MeshRenderer;
+meshRenderer.mesh = mesh;
+meshRenderer.onGeometryChanged();
+
+// ...
+// 動態更新 Dynamic Mesh
+if ( _ ) {
+    geometry.positions = subMesh.positions.subarray(0, geometry.positions.length + count * 3);
+    geometry.normals = subMesh.normals.subarray(0, geometry.normals!.length + count * 3);
+    meshRenderer.mesh!.updateSubMesh(i, geometry);
+    dirty = true;
+}
+if(dirty) {
+    meshRenderer.onGeometryChanged();
+}
+```
+
+## 骨骼蒙皮模型 SkinnedMeshRenderer
+
+
+# 參考延伸閱讀
+
+[Cocos Creator 模型資源](https://docs.cocos.com/creator/3.8/manual/zh/asset/model/mesh.html)
+
+[Cocos Creator 程序化创建网格](https://docs.cocos.com/creator/3.8/manual/zh/asset/model/scripting-mesh.html)

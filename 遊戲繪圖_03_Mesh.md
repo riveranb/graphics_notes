@@ -169,10 +169,13 @@ MeshRenderer 組件提供靜態的幾何模型 (Solid Mesh) 繪圖功能。除�
 
 ![SkinnedMeshRenderer](images/cocoscreator_skinnedmeshrenderer_inspector.png)
 
-SkinnedMeshRenderer 是現代遊戲實現生動角色表現的核心技術，雖然計算成本較 MeshRenderer 高，但帶來了豐富的動態表現力。GPU Skinning 技術則被提出來針對 Skinning 動畫計算進行效能優化。
+SkinnedMeshRenderer 是現代遊戲實現生動角色表現的核心技術，雖然計算成本較 MeshRenderer 高，但帶來了豐富的動態表現力。
+Cocos Creator 提出 [SkinnedMeshBatchRenderer](https://docs.cocos.com/creator/3.8/manual/zh/module-map/mesh/skinnedMeshBatchRenderer.html) 功能組件實現 GPU Skinning 效能優化方案。
 
 # 參考延伸閱讀
 
 [Cocos Creator 模型資源](https://docs.cocos.com/creator/3.8/manual/zh/asset/model/mesh.html)
 
 [Cocos Creator 程序化创建网格](https://docs.cocos.com/creator/3.8/manual/zh/asset/model/scripting-mesh.html)
+
+[Cocos Creator 骨骼动画](https://docs.cocos.com/creator/3.8/manual/zh/animation/skeletal-animation.html)

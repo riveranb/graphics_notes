@@ -27,4 +27,69 @@ C_out = C_source × α_source + C_destination × (1 - α_source)
 
 透明透空繪圖 (Alpha Test) 是透明度處理的替代方案，透過設定透明度門檻值 (Threshold) 決定像素保留或丟棄，避免複雜的顏色混合運算。透明度低於門檻值(如 0.5)的像素會被 GPU 丟棄 (Discard)，高於門檻值則當作完全不透明繪圖處理(並寫入深度)。透明透空無法產生平滑的透明漸變效果，邊緣易出現鋸齒 (Aliasing) 現象，適合用於有明確透明邊界的材質，如植物葉片、鐵絲網、UI 圖示等，不適合玻璃、煙霧等需要漸變透明的效果。
 
-## 混合方案
+## Blend 狀態
+
+GPU 透過「Blend 狀態參數」來控制來源像素 (Source) 與目標像素 (Destination) 的顏色混合方式。這些參數可使用 Graphics API 設置，下述主要以 OpenGL 為前提介紹：
+
+- **Blend Enable (啟用混合)**  
+  是否啟用顏色混合。若關閉，來源像素會直接覆蓋目標像素。
+
+- **Blend Equation (混合方程式)**  
+  決定來源與目標顏色如何組合。常見選項有：
+  - `FUNC_ADD`：Source + Destination
+  - `FUNC_SUBTRACT`：Source - Destination
+  - `FUNC_REVERSE_SUBTRACT`：(反向相減) Destination - Source
+
+- **Blend Factor (混合因子)**  
+  控制來源與目標顏色在混合時的權重係數。常見因子有：
+  - `ZERO`（0）
+  - `ONE`（1）
+  - `SRC_ALPHA`（Source_Alpha）
+  - `ONE_MINUS_SRC_ALPHA`（1 - Source_Alpha）
+  - `DST_ALPHA`（Destination_Alpha）
+  - `ONE_MINUS_DST_ALPHA`（1 - Destination_Alpha）
+
+- **Color Mask (顏色遮罩)**  
+  控制哪些顏色通道（R/G/B/A）允許寫入 Frame Buffer。
+
+- **Blend Color (混合常數顏色)**  
+  某些混合模式下可指定一個常數顏色參與混合。
+
+Graphics Pipeline 在 Fragment Shader 回傳顏色結果後，便以 Blend 狀態參數執行指定的混合公式，計算出最終顏色結果，該過程通用混合公式：
+
+```math
+\begin{align}
+C_{out} &= C_{src} \times F_{src} \oplus C_{dst} \times F_{dst} \\
+\\
+\text{其中：} \\
+C_{out} &: \text{最終寫入 Frame Buffer 的顏色向量 (R, G, B, A)} \\
+C_{src} &: \text{來源顏色（Fragment Shader 輸出）} \\
+C_{dst} &: \text{目標顏色（Frame Buffer 原有值）} \\
+F_{src} &: \text{來源混合因子（Source Blend Factor）} \\
+F_{dst} &: \text{目標混合因子（Destination Blend Factor）} \\
+\oplus &: \text{Blend Equation（如 Add, Substract, Reverse Substract）}
+\end{align}
+```
+
+不同的混合模式（如 Alpha Blending、Additive Blending 等）就是透過調整 F_src 與 F_dst 來實現。
+
+## 透明效果
+
+GPU 使用 Blending 可實現多樣化的透明顏色混合，在繪圖或遊戲畫面中，常見的主流透明混合效果有：
+- Alpha Blending (Alpha 混合)
+- Additive Blending (加法混合)
+- Screen/Multiply/Overlay
+
+### Alpha Blending
+
+### Additive Blending
+
+### Screen
+
+### Multiply
+
+### Overlay
+
+# 參考延伸閱讀
+
+[OpenGL Blending](https://www.khronos.org/opengl/wiki/blending)

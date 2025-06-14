@@ -60,6 +60,8 @@ GPU 透過 3 核心緩衝區 (Buffer) 來高效處理 Mesh 資料，以 OpenGL A
 - **材質整合**：將 Mesh 綁定 Material 進行渲染
 - **渲染狀態控制**：管理可見性、陰影投射 (Shadow) 等渲染參數
 
+MeshRenderer 組件管理 Mesh，該 Mesh 可包含多個 Sub-Mesh（Sub-Mesh 容器）。每個 Sub-Mesh 搭配其配對之 Material 設置進行繪圖工作，便算 1 個 **Draw Call**。
+
 ![MeshRenderer](images/cocoscreator_meshrenderer_inspector.png)
 
 ### 程序化 Mesh

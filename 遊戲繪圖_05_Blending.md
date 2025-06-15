@@ -4,7 +4,7 @@ Blending 位於 GPU Graphics Pipeline 處理中 Per-Fragment Operations 階段�
 
 ## 透明 Transparent
 
-透明效果讓物體呈現半透明或完全透明狀態。在 Graphics Rendering 中顏色的透明度透過 Alpha 通道控制。透明物體不能直接覆蓋背景，需要與後方像素進行顏色混合。常見透明混合顏色公式：
+透明效果讓物體呈現半透明或完全透明狀態。在 Graphics Pipeline 中顏色的透明度透過 Alpha 通道控制。透明物體不能直接覆蓋背景，需要與後方像素進行顏色混合。常見透明混合顏色公式：
 
 C_out = C_source × α_source + C_destination × (1 - α_source)
 
@@ -28,6 +28,8 @@ C_out = C_source × α_source + C_destination × (1 - α_source)
 透明透空繪圖 (Alpha Test) 是透明度處理的替代方案，透過設定透明度門檻值 (Threshold) 決定像素保留或丟棄，避免複雜的顏色混合運算。透明度低於門檻值(如 0.5)的像素會被 GPU 丟棄 (Discard)，高於門檻值則當作完全不透明繪圖處理(並寫入深度)。透明透空無法產生平滑的透明漸變效果，邊緣易出現鋸齒 (Aliasing) 現象，適合用於有明確透明邊界的材質，如植物葉片、鐵絲網、UI 圖示等，不適合玻璃、煙霧等需要漸變透明的效果。
 
 ## Blend 狀態
+
+![Cocos BlendState](images/cocoscreator_blendstate.png)
 
 GPU 透過「Blend 狀態參數」來控制來源像素 (Source) 與目標像素 (Destination) 的顏色混合方式。這些參數可使用 Graphics API 設置，下述主要以 OpenGL 為前提介紹：
 

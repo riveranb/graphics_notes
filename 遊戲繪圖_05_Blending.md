@@ -25,6 +25,8 @@ C_out = C_source × α_source + C_destination × (1 - α_source)
 
 ### 透明透空 Alpha Test
 
+![alpha test](images/transparency_alphatest.png)
+
 透明透空繪圖 (Alpha Test) 是透明度處理的替代方案，透過設定透明度門檻值 (Threshold) 決定像素保留或丟棄，避免複雜的顏色混合運算。透明度低於門檻值(如 0.5)的像素會被 GPU 丟棄 (Discard)，高於門檻值則當作完全不透明繪圖處理(並寫入深度)。透明透空無法產生平滑的透明漸變效果，邊緣易出現鋸齒 (Aliasing) 現象，適合用於有明確透明邊界的材質，如植物葉片、鐵絲網、UI 圖示等，不適合玻璃、煙霧等需要漸變透明的效果。
 
 ## Blend 狀態

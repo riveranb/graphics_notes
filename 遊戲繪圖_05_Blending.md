@@ -6,12 +6,16 @@ Blending 位於 GPU Graphics Pipeline 處理中 Per-Fragment Operations 階段�
 
 透明效果讓物體呈現半透明或完全透明狀態。在 Graphics Pipeline 中顏色的透明度透過 Alpha 通道控制。透明物體不能直接覆蓋背景，需要與後方像素進行顏色混合。常見透明混合顏色公式：
 
-C_out = C_source × α_source + C_destination × (1 - α_source)
-
-其中：
-- C_source：新繪製來源像素顏色
-- C_destination：Frame Buffer 中目標像素原有顏色
-- α_source：新來源像素的透明度值
+```math
+\begin{aligned}
+&C_{out} = C_{source} \times \alpha_{source} + C_{destination} \times (1 - \alpha_{source}) \\
+\\
+&\text{其中：} \\
+&C_{source} : \text{新繪製來源像素顏色} \\
+&C_{destination} : \text{Frame Buffer 中目標像素原有顏色} \\
+&\alpha_{source} : \text{新來源像素的透明度值}
+\end{aligned}
+```
 
 ### 透明繪圖排序
 
@@ -85,6 +89,25 @@ GPU 使用 Blending 可實現多樣化的透明顏色混合，在繪圖或遊戲
 - Screen/Multiply/Overlay
 
 ### Alpha Blending
+
+最常見的透明繪圖透明混色方法，透過 Alpha 通道控制物體透明度，實現玻璃、水面、煙霧等半透明效果。透明物體需要從後往前排序繪製，確保混合顏色計算正確，同時關閉深度寫入以避免遮擋後方物體。
+
+**設置參數：**
+- Source Factor: `SRC_ALPHA`
+- Destination Factor: `ONE_MINUS_SRC_ALPHA`
+- Blend Equation: `FUNC_ADD`
+
+**公式：**
+```math
+\begin{aligned}
+&C_{out} = C_{src} \times \alpha_{src} + C_{dst} \times (1 - \alpha_{src}) \\
+\\
+&\alpha_{src} \text{ 值範圍 } 0 \sim 1 \text{：} \\
+&\alpha = 0 \text{：完全透明} \\
+&\alpha = 1 \text{：完全不透明} \\
+&\alpha = 0.5 \text{：50\% 透明度}
+\end{aligned}
+```
 
 ### Additive Blending
 

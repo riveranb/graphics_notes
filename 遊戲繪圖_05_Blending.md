@@ -111,6 +111,30 @@ GPU 使用 Blending 可實現多樣化的透明顏色混合，在繪圖或遊戲
 
 ### Additive Blending
 
+製作發光效果的最主流透明方案，適用於如火焰、煙花、魔法光效、鐳射光束等特效。將來源顏色直接疊加到目標顏色上，使畫面變得更亮更鮮豔。加法混合的特點是越疊加越亮，需注意顏色亮度太亮的問題(顏色加總逼近白色)。
+
+**設置參數：**
+- Source Factor: `SRC_ALPHA` 或 `ONE`
+- Destination Factor: `ONE`
+- Blend Equation: `FUNC_ADD`
+
+**公式：**
+```math
+\begin{aligned}
+&C_{out} = C_{src} \times F_{src} + C_{dst} \times 1.0 \\
+\\
+&\text{常見組合：} \\
+&C_{out} = C_{src} \times \alpha_{src} + C_{dst} \times 1.0 \quad \text{(SRC\_ALPHA, ONE)} \\
+&C_{out} = C_{src} \times 1.0 + C_{dst} \times 1.0 \quad \text{(ONE, ONE)} \\
+\\
+&\text{效果特性：} \\
+&\text{• 顏色值只會增加，不會減少} \\
+&\text{• 黑色 (0,0,0) 不會影響最終顏色} \\
+&\text{• 重疊區域會產生明亮的累積效果} \\
+&\text{• 適合粒子系統和光效渲染}
+\end{aligned}
+```
+
 ### Screen
 
 ### Multiply

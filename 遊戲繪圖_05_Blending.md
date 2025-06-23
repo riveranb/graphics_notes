@@ -101,6 +101,7 @@ GPU 使用 Blending 可實現多樣化的透明顏色混合，在繪圖或遊戲
 ```math
 \begin{aligned}
 &C_{out} = C_{src} \times \alpha_{src} + C_{dst} \times (1 - \alpha_{src}) \\
+&\alpha_{out} = \alpha_{src} + \alpha_{dst} \times (1 - \alpha_{src}) \\
 \\
 &\alpha_{src} \text{ 值範圍 } 0 \sim 1 \text{：} \\
 &\alpha = 0 \text{：完全透明} \\
@@ -122,10 +123,13 @@ GPU 使用 Blending 可實現多樣化的透明顏色混合，在繪圖或遊戲
 ```math
 \begin{aligned}
 &C_{out} = C_{src} \times F_{src} + C_{dst} \times 1.0 \\
+&\alpha_{out} = \alpha_{src} \times F_{src} + \alpha_{dst} \times 1.0 \\
 \\
 &\text{常見組合：} \\
 &C_{out} = C_{src} \times \alpha_{src} + C_{dst} \times 1.0 \quad \text{(SRC\_ALPHA, ONE)} \\
+&\alpha_{out} = \alpha_{src} \times \alpha_{src} + \alpha_{dst} \times 1.0 \\
 &C_{out} = C_{src} \times 1.0 + C_{dst} \times 1.0 \quad \text{(ONE, ONE)} \\
+&\alpha_{out} = \alpha_{src} \times 1.0 + \alpha_{dst} \times 1.0 \\
 \\
 &\text{效果特性：} \\
 &\text{• 顏色值只會增加，不會減少，黑色 [0, 0, 0] 不會影響最終顏色}

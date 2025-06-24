@@ -96,12 +96,15 @@ GPU 使用 Blending 可實現多樣化的透明顏色混合，在繪圖或遊戲
 - Source Factor: `SRC_ALPHA`
 - Destination Factor: `ONE_MINUS_SRC_ALPHA`
 - Blend Equation: `FUNC_ADD`
+- Alpha Source Factor: `ONE`
+- Alpha Destination Factor: `ONE_MINUS_SRC_ALPHA`
+- Alpha Blend Equation: `FUNC_ADD`
 
 **公式：**
 ```math
 \begin{aligned}
 &C_{out} = C_{src} \times \alpha_{src} + C_{dst} \times (1 - \alpha_{src}) \\
-&\alpha_{out} = \alpha_{src} + \alpha_{dst} \times (1 - \alpha_{src}) \\
+&\alpha_{out} = \alpha_{src} \times 1 + \alpha_{dst} \times (1 - \alpha_{src}) \\
 \\
 &\alpha_{src} \text{ 值範圍 } 0 \sim 1 \text{：} \\
 &\alpha = 0 \text{：完全透明} \\
@@ -118,6 +121,9 @@ GPU 使用 Blending 可實現多樣化的透明顏色混合，在繪圖或遊戲
 - Source Factor: `SRC_ALPHA` 或 `ONE`
 - Destination Factor: `ONE`
 - Blend Equation: `FUNC_ADD`
+- Alpha Source Factor: `SRC_ALPHA` 或 `ONE`
+- Alpha Destination Factor: `ONE`
+- Alpha Blend Equation: `FUNC_ADD`
 
 **公式：**
 ```math
@@ -138,9 +144,88 @@ GPU 使用 Blending 可實現多樣化的透明顏色混合，在繪圖或遊戲
 
 ### Screen
 
+Screen 混合是一種類似於加法混合但更為柔和的混合模式，模擬多層光線投影的效果。常用於製作柔和的光暈、雲朵、煙霧等需要自然融合的特效。Screen 混合會讓畫面變亮，但不會像加法混合那樣容易過曝，產生更自然的亮度提升效果。
+
+**設置參數：**
+- Source Factor: `ONE_MINUS_DST_COLOR`
+- Destination Factor: `ONE`
+- Blend Equation: `FUNC_ADD`
+- Alpha Source Factor: `ONE_MINUS_DST_ALPHA`
+- Alpha Destination Factor: `ONE`
+- Alpha Blend Equation: `FUNC_ADD`
+
+**公式：**
+```math
+\begin{aligned}
+&C_{out} = C_{src} \times (1 - C_{dst}) + C_{dst} \times 1.0 \\
+&C_{out} = C_{src} + C_{dst} - C_{src} \times C_{dst} \\
+&\alpha_{out} = \alpha_{src} \times (1 - \alpha_{dst}) + \alpha_{dst} \times 1.0 \\
+&\alpha_{out} = \alpha_{src} + \alpha_{dst} - \alpha_{src} \times \alpha_{dst} \\
+\\
+&\text{數學等價形式：} \\
+&C_{out} = 1 - (1 - C_{src}) \times (1 - C_{dst}) \\
+&\alpha_{out} = 1 - (1 - \alpha_{src}) \times (1 - \alpha_{dst}) \\
+\\
+&\text{效果特性：} \\
+&\text{• 結果顏色永遠不會比輸入顏色更暗，白色 [1, 1, 1] 會產生白色輸出}
+\end{aligned}
+```
+
 ### Multiply
 
+Multiply 混合是將來源顏色與目標顏色相乘的混合模式，產生比原始顏色更暗的結果。常用於製作陰影、暗化效果、色彩濾鏡等。Multiply 混合的特性是任何顏色與黑色相乘結果為黑色，與白色相乘則保持原色不變，適合用於疊加陰影或暗部細節。
+
+**設置參數：**
+- Source Factor: `DST_COLOR`
+- Destination Factor: `ZERO`
+- Blend Equation: `FUNC_ADD`
+- Alpha Source Factor: `DST_ALPHA`
+- Alpha Destination Factor: `ZERO`
+- Alpha Blend Equation: `FUNC_ADD`
+
+**公式：**
+```math
+\begin{aligned}
+&C_{out} = C_{src} \times C_{dst} + C_{dst} \times 0.0 \\
+&C_{out} = C_{src} \times C_{dst} \\
+&\alpha_{out} = \alpha_{src} \times \alpha_{dst} + \alpha_{dst} \times 0.0 \\
+&\alpha_{out} = \alpha_{src} \times \alpha_{dst} \\
+\\
+&\text{效果特性：} \\
+&\text{• 結果顏色永遠不會比輸入顏色更亮，黑色 [0, 0, 0] 會產生黑色輸出} \\
+&\text{• 白色 [1, 1, 1] 不會改變目標顏色}
+\end{aligned}
+```
+
 ### Overlay
+
+Overlay 混合結合了 Multiply 和 Screen 的特性，根據目標顏色的亮度決定使用哪種混合方式。對於較暗的區域使用 Multiply 混合，對於較亮的區域使用 Screen 混合，產生對比度增強的效果。常用於色彩校正、特殊濾鏡效果、增強材質對比度等應用。
+
+**設置參數：**
+- 需要在 Shader 中實現條件判斷邏輯
+- 無法直接用單一 Blend Factor 組合實現
+- 通常透過 Fragment Shader 計算後輸出
+
+**公式：**
+```math
+\begin{aligned}
+&\text{條件判斷：} \\
+&\text{if } C_{dst} < 0.5: \\
+&\quad C_{out} = 2 \times C_{src} \times C_{dst} \\
+&\text{else:} \\
+&\quad C_{out} = 1 - 2 \times (1 - C_{src}) \times (1 - C_{dst}) \\
+\\
+&\text{Alpha 通道：} \\
+&\text{if } \alpha_{dst} < 0.5: \\
+&\quad \alpha_{out} = 2 \times \alpha_{src} \times \alpha_{dst} \\
+&\text{else:} \\
+&\quad \alpha_{out} = 1 - 2 \times (1 - \alpha_{src}) \times (1 - \alpha_{dst}) \\
+\\
+&\text{效果特性：} \\
+&\text{• 增強對比度，暗部更暗，亮部更亮} \\
+&\text{• 中性灰 [0.5, 0.5, 0.5] 不會改變目標顏色}
+\end{aligned}
+```
 
 # 參考延伸閱讀
 

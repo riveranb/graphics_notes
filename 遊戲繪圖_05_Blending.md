@@ -87,6 +87,8 @@ F_{dst} &: \text{目標混合因子（Destination Blend Factor）} \\
 
 ## 透明效果
 
+![vfx](images/transparent_game_vfx.png)
+
 GPU 使用 Blending 可實現多樣化的透明顏色混合，在繪圖或遊戲畫面中，常見的主流透明混合效果有：
 - Alpha Blending (Alpha 混合)
 - Additive Blending (加法混合)

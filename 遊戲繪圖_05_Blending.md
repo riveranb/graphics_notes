@@ -4,7 +4,7 @@ Blending 位於 GPU Graphics Pipeline 處理中 Per-Fragment Operations 階段�
 
 ## 透明 Transparent
 
-透明效果讓物體呈現半透明或完全透明狀態。在 Graphics Pipeline 中顏色的透明度透過 Alpha 通道控制。透明物體不能直接覆蓋背景，需要與後方像素進行顏色混合。常見透明混合顏色公式：
+透明效果讓物體呈現半透明或完全透明狀態。在 Graphics Pipeline 中顏色的透明度透過 Alpha 通道控制。透明物體不覆蓋背景，而與後方像素進行顏色混合。常見透明混合顏色公式：
 
 ```math
 \begin{aligned}
@@ -19,25 +19,25 @@ Blending 位於 GPU Graphics Pipeline 處理中 Per-Fragment Operations 階段�
 
 ### 透明繪圖排序
 
-透明繪圖顏色使用混合顏色公式計算得出，公式的前提是新的來源透明顏色與之前的透明顏色混合，因此繪製順序會直接影響顏色結果。透明度混合公式不具交換性質，A 混合 B 與 B 混合 A 會產生不同顏色。不透明物體繪圖依賴 Depth Buffer (Z-Buffer) 深度測試自動解決遮擋。透明物體繪圖則無法寫入深度，因為會錯誤地覆蓋後方物體繪製結果。
+透明繪圖顏色使用混合顏色公式計算得出，公式的前提是新的來源透明顏色與之前的透明顏色混合，因此繪圖順序會直接影響顏色結果。透明顏色混合公式不具交換性，A 混合 B 與 B 混合 A 會產生不同顏色。不透明物體繪圖依賴 Depth Buffer (Z-Buffer) 深度測試自動解決遮擋，透明物體繪圖則無法寫入深度，因為會錯誤地覆蓋後方物體繪圖結果。
 
 解決方案：**從後往前繪圖 (Back-to-Front)**
 
 ![transparency sorting](images/transparency_back2front_sorting.png)
 
-關閉透明物體深度寫入，按物體到攝影機距離排序，依序先繪製較遠物體再繪製較近物體，確保混合順序正確，即能計算正確透明混色結果。遊戲引擎/繪圖引擎都會正確處理透明物件的由後至前方排序工作，但也伴隨著(CPU端)計算代價
+透明物體關閉寫入深度，按物體到攝影機距離排序，依序先從較遠物體至較近物體繪圖，確保混合順序正確。遊戲引擎/繪圖引擎都會正確處理透明物件之由後至前排序工作，但也伴隨著(CPU 端)計算代價。
 
 ### 透明透空 Alpha Test
 
 ![alpha test](images/transparency_alphatest.png)
 
-透明透空繪圖 (Alpha Test) 是透明度處理的替代方案，透過設定透明度門檻值 (Threshold) 決定像素保留或丟棄，避免複雜的顏色混合運算。透明度低於門檻值(如 0.5)的像素會被 GPU 丟棄 (Discard)，高於門檻值則當作完全不透明繪圖處理(並寫入深度)。透明透空無法產生平滑的透明漸變效果，邊緣易出現鋸齒 (Aliasing) 現象，適合用於有明確透明邊界的材質，如植物葉片、鐵絲網、UI 圖示等，不適合玻璃、煙霧等需要漸變透明的效果。
+透明透空繪圖 (Alpha Test) 是透明度處理的替代方案，透過設定透明度閾值 (Threshold) 決定像素保留或丟棄，略過顏色混合運算。透明度低於閾值(如 0.5)的像素會被 GPU 放棄執行處理 (Discard)，高於閾值則當作完全不透明繪圖處理(並寫入深度)。透明透空無法產生平滑的透明漸變效果，邊緣易出現鋸齒 (Aliasing) 現象，適合用於有明確透明邊界的材質，如植物葉片、鐵絲網、UI 圖示等，不適合玻璃、煙霧等需要漸變透明的效果。
 
 ## Blend 狀態
 
 ![Cocos BlendState](images/cocoscreator_blendstate.png)
 
-GPU 透過「Blend 狀態參數」來控制來源像素 (Source) 與目標像素 (Destination) 的顏色混合方式。這些參數可使用 Graphics API 設置，下述主要以 OpenGL 為前提介紹：
+GPU 透過「Blend 狀態參數」來控制來源像素 (Source) 與目標像素 (Destination) 的顏色混合方式。這些參數可使用 Graphics API 設置，下述介紹以 OpenGL 為前提：
 
 - **Blend Enable (啟用混合)**  
   是否啟用顏色混合。若關閉，來源像素會直接覆蓋目標像素。
@@ -49,13 +49,17 @@ GPU 透過「Blend 狀態參數」來控制來源像素 (Source) 與目標像素
   - `FUNC_REVERSE_SUBTRACT`：(反向相減) Destination - Source
 
 - **Blend Factor (混合因子)**  
-  控制來源與目標顏色在混合時的權重係數。常見因子有：
-  - `ZERO`（0）
-  - `ONE`（1）
-  - `SRC_ALPHA`（Source_Alpha）
-  - `ONE_MINUS_SRC_ALPHA`（1 - Source_Alpha）
-  - `DST_ALPHA`（Destination_Alpha）
-  - `ONE_MINUS_DST_ALPHA`（1 - Destination_Alpha）
+  控制來源與目標顏色在混合時的權重係數。因子有：
+  - `ZERO` (0)
+  - `ONE` (1)
+  - `SRC_ALPHA` (Source_Alpha)
+  - `ONE_MINUS_SRC_ALPHA` (1 - Source_Alpha)
+  - `DST_ALPHA` (Destination_Alpha)
+  - `ONE_MINUS_DST_ALPHA` (1 - Destination_Alpha)
+  - `SRC_COLOR` (Source_Color)
+  - `ONE_MINUS_SRC_COLOR` (1 - Source_Color)
+  - `DST_COLOR` (Destination_Color)
+  - `ONE_MINUS_DST_COLOR` (1 - Destination_Color)
 
 - **Color Mask (顏色遮罩)**  
   控制哪些顏色通道（R/G/B/A）允許寫入 Frame Buffer。
@@ -90,7 +94,7 @@ GPU 使用 Blending 可實現多樣化的透明顏色混合，在繪圖或遊戲
 
 ### Alpha Blending
 
-最常見的透明繪圖透明混色方法，透過 Alpha 通道控制物體透明度，實現玻璃、水面、煙霧等半透明效果。透明物體需要從後往前排序繪製，確保混合顏色計算正確，同時關閉深度寫入以避免遮擋後方物體。
+最常見的透明繪圖透明混色方法，透過 Alpha 通道控制物體透明度，實現玻璃、水霧面等效果。透明物體需要從後往前排序繪製，確保混合顏色計算正確，同時關閉深度寫入以避免遮擋後方物體。
 
 **設置參數：**
 - Source Factor: `SRC_ALPHA`
@@ -115,7 +119,7 @@ GPU 使用 Blending 可實現多樣化的透明顏色混合，在繪圖或遊戲
 
 ### Additive Blending
 
-製作發光效果的最主流透明方案，適用於如火焰、煙花、魔法光效、鐳射光束等特效。將來源顏色直接疊加到目標顏色上，使畫面變得更亮更鮮豔。加法混合的特點是越疊加越亮，需注意顏色亮度太亮的問題(顏色加總逼近白色)。
+製作發光效果的最主流透明方案，適用於如火焰、煙花、鐳射光束等特效。將來源顏色直接疊加到目標顏色上，使畫面變得更亮更鮮豔。加法混合的特點是越疊加越亮，需注意顏色亮度太亮的問題(顏色加總逼近白色)。
 
 **設置參數：**
 - Source Factor: `SRC_ALPHA` 或 `ONE`
@@ -158,13 +162,7 @@ Screen 混合是一種類似於加法混合但更為柔和的混合模式，模�
 ```math
 \begin{aligned}
 &C_{out} = C_{src} \times (1 - C_{dst}) + C_{dst} \times 1.0 \\
-&C_{out} = C_{src} + C_{dst} - C_{src} \times C_{dst} \\
 &\alpha_{out} = \alpha_{src} \times (1 - \alpha_{dst}) + \alpha_{dst} \times 1.0 \\
-&\alpha_{out} = \alpha_{src} + \alpha_{dst} - \alpha_{src} \times \alpha_{dst} \\
-\\
-&\text{數學等價形式：} \\
-&C_{out} = 1 - (1 - C_{src}) \times (1 - C_{dst}) \\
-&\alpha_{out} = 1 - (1 - \alpha_{src}) \times (1 - \alpha_{dst}) \\
 \\
 &\text{效果特性：} \\
 &\text{• 結果顏色永遠不會比輸入顏色更暗，白色 [1, 1, 1] 會產生白色輸出}
@@ -173,7 +171,7 @@ Screen 混合是一種類似於加法混合但更為柔和的混合模式，模�
 
 ### Multiply
 
-Multiply 混合是將來源顏色與目標顏色相乘的混合模式，產生比原始顏色更暗的結果。常用於製作陰影、暗化效果、色彩濾鏡等。Multiply 混合的特性是任何顏色與黑色相乘結果為黑色，與白色相乘則保持原色不變，適合用於疊加陰影或暗部細節。
+Multiply 混合是將來源顏色與目標顏色相乘的混合模式，產生比原始顏色更暗的結果。常用於製作陰影、暗化效果、色彩濾鏡等，適合用於疊加陰影或暗部細節。
 
 **設置參數：**
 - Source Factor: `DST_COLOR`
@@ -187,13 +185,10 @@ Multiply 混合是將來源顏色與目標顏色相乘的混合模式，產生�
 ```math
 \begin{aligned}
 &C_{out} = C_{src} \times C_{dst} + C_{dst} \times 0.0 \\
-&C_{out} = C_{src} \times C_{dst} \\
 &\alpha_{out} = \alpha_{src} \times \alpha_{dst} + \alpha_{dst} \times 0.0 \\
-&\alpha_{out} = \alpha_{src} \times \alpha_{dst} \\
 \\
 &\text{效果特性：} \\
-&\text{• 結果顏色永遠不會比輸入顏色更亮，黑色 [0, 0, 0] 會產生黑色輸出} \\
-&\text{• 白色 [1, 1, 1] 不會改變目標顏色}
+&\text{• 結果顏色永遠不會比輸入顏色更亮，黑色 [0, 0, 0] 會產生黑色輸出}
 \end{aligned}
 ```
 
@@ -202,9 +197,13 @@ Multiply 混合是將來源顏色與目標顏色相乘的混合模式，產生�
 Overlay 混合結合了 Multiply 和 Screen 的特性，根據目標顏色的亮度決定使用哪種混合方式。對於較暗的區域使用 Multiply 混合，對於較亮的區域使用 Screen 混合，產生對比度增強的效果。常用於色彩校正、特殊濾鏡效果、增強材質對比度等應用。
 
 **設置參數：**
-- 需要在 Shader 中實現條件判斷邏輯
-- 無法直接用單一 Blend Factor 組合實現
-- 通常透過 Fragment Shader 計算後輸出
+- Source Factor: `ONE`
+- Destination Factor: `ZERO`
+- Blend Equation: `FUNC_ADD`
+- Alpha Source Factor: `ONE`
+- Alpha Destination Factor: `ZERO`
+- Alpha Blend Equation: `FUNC_ADD`
+- **實現方式：** Fragment Shader 中計算條件判斷邏輯後直接輸出最終顏色
 
 **公式：**
 ```math
@@ -230,3 +229,5 @@ Overlay 混合結合了 Multiply 和 Screen 的特性，根據目標顏色的亮
 # 參考延伸閱讀
 
 [OpenGL Blending](https://www.khronos.org/opengl/wiki/blending)
+
+[WebGL Blend Demo](https://mrdoob.github.io/webgl-blendfunctions/blendfunc.html)

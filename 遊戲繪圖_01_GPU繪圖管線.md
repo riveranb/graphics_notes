@@ -35,31 +35,31 @@ GPU: Graphics Processing Unit；下圖是繪圖過程 CPU 端至 GPU 端運作�
 
 ![alt text](images/graphicspipeline.svg)
 
-### 事前準備 (Parepare, Load, Flatten)
+### 事前準備 Parepare, Load, Flatten
 繪圖內容通常可使用場景表達 (e.g. Hierarchical Scene Graph)，將指定場景內容以 GPU 認得的資料格式儲存進記憶體，比方說將繪圖對象物件包裝為一組含幾何模型 (Mesh Buffer)，材質描述 (Material)，與空間轉換(Transformation Matrix)資料。
 
-### 繪圖剔除 (Cull)
+### 繪圖剔除 Cull
 此階段處理針對指定鏡頭，剔除可視範圍之外的所有物件，主要技術為 Frustum Culliing。
 
-### 工作簡化優化 (Simplify)
+### 工作簡化優化 Simplify
 此階段可進行依視角決定資料複雜度的優化處理，主要技術如 Level of Detail (較遠、較小的物件採取低複雜度資料輕量的內容傳送給 GPU 端進行繪圖工作)。
 
-### 頂點運算 (Vertex Processing)
+### 頂點運算 Vertex Processing
 此階段 GPU 已經接收到繪圖對象的幾何單元資訊 (三角形 (Triangle) | 線段 (Line) | 點 (Point))，並且得到一組頂點輸入資料。每個頂點帶有座標位置資訊 (x, y, z)，並可帶有軟體程式指定的額外頂點屬性 (Vertex Attribute)，如顏色 (Color: red, green, blue, alpha)、法向量 (Normal Vector)、貼圖指定坐標 (u, v) 等。GPU 負責將頂點計算投影至目標 2D 投影空間的像素座標位置，並且可指定進行光照運算 (Lighting)，還有針對螢幕可視範圍進行幾何裁切 (Clipping) 避免繪圖區域跑出螢幕可視區域外。運算完成時 GPU 將頂點運算結果儲存到指定的頂點屬性輸出暫存器 (Output Vertex Attributes)。
 
-### 光柵化 (Rasterize)
+### 光柵化 Rasterize
 ![alt text](images/raster_trianglefill.png)
 
 之前文章已簡介過光柵化過程以及相關演算法。GPU 會將頂點運算階段輸出的屬性結果使用線性內插 (Linear Interpolation) 計算其涵蓋到的像素輸入資料。
 
-### 像素片段運算 (Fragment Processing)
+### 像素片段運算 Fragment Processing
 此階段 GPU 對每個像素 (Pixel) 計算顏色結果，過程中支援對貼圖資源存取完成貼圖顏色映射運算 (Texture Mapping)，並更新到繪圖目標畫面 (Render Target) 的指定像素。Render Target 是一段配置好的連續記憶體緩衝區，因此也稱為 Frame Buffer。此階段在更新目標像素時還會做深度測試檢查 (Depth/Z Test)，正常來說繪製不透明物件時，會將新的像素位置計算得到的深度 (距離鏡頭之深度) 與原本 Render Target 上的像素深度做比較，如果新的像素位置比較近才進行像素結果更新，代表新的像素可以被畫到目標畫面上，反之代表新的像素比較遠已經被原本的像素擋住。除了深度測試外也可以指定進行遮罩測試檢查 (Stencil Test)，運作原理相近。最終進行更新目標像素資料時，除了直接取代新顏色外，也可使用指定透明度進行透明顏色混合運算 (Alpha Blend)，達成透明物件繪圖功能。
 
 此階段除了像素顏色 (Color) 運算，還要支援深度與遮罩測試，因此每個繪圖目標緩衝區 (Frame Buffer)，除了顏色緩衝區 (Color Buffer) 外都支援與其完全對映的深度緩衝區 (Depth & Stencil Buffer)。而 GPU 何時與如何進行深度/遮罩測試檢查，透明混合繪圖運算，都透過圖學函式庫指定改變 GPU 的工作狀態達成控制。
 
 ![text](images/3dscene_depth.png)
 
-### 畫面後處理 (Post Processing)
+### 畫面後處理 Post Processing
 2D 結果畫面已完成，此階段可進行畫面後處理如反鋸齒 (Anti-Aliasing)，Gamma校正，影像濾鏡處理等。
 
 ## Legacy Fixed Function Pipeline

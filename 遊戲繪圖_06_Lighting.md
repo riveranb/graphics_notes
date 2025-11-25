@@ -132,3 +132,9 @@ Blinn-Phong 是 Phong 模型的改良版 (James Blinn，1977 年提出)。主要
 # 參考延伸閱讀
 
 [Computer Graphics Lighting](https://en.wikipedia.org/wiki/Computer_graphics_lighting)
+
+[Phong Reflection Model](https://en.wikipedia.org/wiki/Phong_reflection_model)
+
+[Blinn-Phong Reflection Model](https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model)
+
+[OpenGL - Basic Lighting](https://learnopengl.com/Lighting/Basic-Lighting)

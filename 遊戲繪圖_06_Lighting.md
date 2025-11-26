@@ -6,6 +6,8 @@
 
 光照模型 (Lighting Model / Illumination Model) 是模擬光線與物體表面互動的數學公式。主流光照模型將反射光分解為數個主要分量：
 
+![lighting_basic](images/lighting_phong_basic.png)
+
 **1. 環境光 (Ambient)**
 
 模擬場景中無方向性的間接光照，為場景提供基礎亮度。環境光不考慮光源位置、表面法線等因素，僅為物體表面提供均勻的基礎顏色。
@@ -19,6 +21,8 @@
 ```
 
 **2. 漫反射光 (Diffuse)**
+
+![diffuse](images/lighting_diffuse.png)
 
 模擬粗糙表面將光線向各方向均勻散射的效果，遵循 Lambert 定律。漫反射讓物體表面呈現基本的明暗變化，是塑造物體形狀的主要光照分量。
 
@@ -35,6 +39,8 @@
 
 **3. 鏡面反射光 (Specular)**
 
+![specular](images/lighting_specular.png)
+
 模擬光滑表面產生的高光效果，只在特定視角可見。鏡面反射讓物體表面呈現亮點，增強材質的光澤感。
 
 ```math
@@ -48,6 +54,8 @@
 &R \cdot V：光反射方向與視線方向的點積(投影比例)，表示高光強度
 \end{aligned}
 ```
+
+![specular shininess](images/lighting_specular_shininess.png)
 
 ### Phong Reflection Model
 
@@ -83,6 +91,8 @@ Blinn-Phong 是 Phong 模型的改良版 (James Blinn，1977 年提出)。主要
 
 ### 平行光 Directional Light
 
+![directional light](images/light_directional.png)
+
 模擬無限遠處的光源，如太陽光。所有光線平行且方向相同，不考慮光源位置，只有光照方向。適用於大範圍的主光源照明。
 
 - 光線方向固定
@@ -91,6 +101,8 @@ Blinn-Phong 是 Phong 模型的改良版 (James Blinn，1977 年提出)。主要
 - 無光源衰減
 
 ### 點光源 Point Light
+
+![point light](images/light_point.png)
 
 從單一點向四周發散的光源，如燈泡、火把。光照強度隨距離衰減。
 
@@ -110,7 +122,11 @@ Blinn-Phong 是 Phong 模型的改良版 (James Blinn，1977 年提出)。主要
 \end{aligned}
 ```
 
+![light attenuation](images/light_distance_attenuation.png)
+
 ### 聚光燈 Spot Light
+
+![spot light](images/light_spotlight.png)
 
 具有方向性的錐形光源，如手電筒、舞台聚光燈。結合 Point Light 的距離衰減與方向限制。
 
@@ -138,3 +154,5 @@ Blinn-Phong 是 Phong 模型的改良版 (James Blinn，1977 年提出)。主要
 [Blinn-Phong Reflection Model](https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model)
 
 [OpenGL - Basic Lighting](https://learnopengl.com/Lighting/Basic-Lighting)
+
+[OpenGL - Light Casters](https://learnopengl.com/Lighting/Light-casters)

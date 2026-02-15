@@ -10,7 +10,7 @@
 
 ![frustum culling]
 
-視錐剔除 (Frustum Culling) 是最基礎且重要的剔除技術，排除位於相機視錐 (View Frustum) 範圍外的物件。視錐定義相機的可視範圍，由 Near Plane、Far Plane 與四個側面平面構成。
+視錐剔除 (Frustum Culling) 是最基礎且重要的剔除技術，排除位於相機視錐 (View Frustum) 範圍外的物件。 View Frustum 定義相機的可視範圍，由 Near Plane (最近可視平面)、Far Plane (最遠可視平面) 與 4 個側面平面構成之錐狀體範圍。
 
 視錐剔除通常在 CPU 端執行，在應用階段 (Application Stage) 完成，避免將不可見物件送入 GPU 處理。
 

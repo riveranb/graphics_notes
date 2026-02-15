@@ -1,6 +1,6 @@
 # 遊戲開發 - 繪圖剔除與裁剪 Culling & Clipping
 
-世界中所有的物體無法盡收眼底，故鏡頭視野可見範圍亦是有限的。鏡頭不可見的物體仍進行繪圖處理的話便成了浪費效能的負擔。剔除 (Culling) 與裁剪 (Clipping) 是優化渲染效能的重要技術，透過排除不可見或超出可視範圍的幾何體，減少不必要的繪圖計算。
+世界中所有的物體無法盡收眼底，故相機的視野可見範圍亦是有限的。相機不可見的物體仍進行繪圖處理的話便成了浪費效能的負擔。剔除 (Culling) 與裁剪 (Clipping) 是優化渲染效能的重要技術，透過排除不可見或超出可視範圍的幾何體，減少不必要的繪圖計算。
 
 ## 剔除 Culling
 
@@ -8,7 +8,7 @@
 
 ### 視錐剔除 Frustum Culling
 
-![frustum culling]
+![frustum culling](images/viewfrustum.png)
 
 視錐剔除 (Frustum Culling) 是最基礎且重要的剔除技術，排除位於相機視錐 (View Frustum) 範圍外的物件。 View Frustum 定義相機的可視範圍，由 Near Plane (最近可視平面)、Far Plane (最遠可視平面) 與 4 個側面平面構成之錐狀體範圍。
 
@@ -18,18 +18,15 @@
 
 ![back face culling]
 
-背面剔除 (Back Face Culling) 排除背向相機的三角形面，因為這些面通常不可見（除非物體是透明的）。GPU 硬體支援高效的背面剔除，透過頂點順序 (Winding Order) 判斷三角形朝向。
-
-**頂點順序：**
-
-- **順時針 (Clockwise, CW)**：面向相機
-- **逆時針 (Counter-Clockwise, CCW)**：背向相機
+背面剔除 (Back Face Culling) 排除背對相機的三角形面。不透明物體之背面不可見故無需繪製；透明物體則不適用。Back Face Culling 屬於 Graphics Fixed-Function Pipeline 的功能，GPU 硬體直接支援，開發者透過 Graphics API 啟用剔除並定義正面的頂點繞序 (Winding Order)：順時針 (Clockwise) 或逆時針 (Counter-Clockwise)。
 
 ```c
-// OpenGL: glCullFace(GL_BACK) 或 glCullFace(GL_FRONT)
+glEnable(GL_CULL_FACE); // 啟用背面剔除
+glFrontFace(GL_CCW); // 定義逆時針繞序為正面 (OpenGL 預設)
+glCullFace(GL_BACK); // 剔除背面 (也可指定 GL_FRONT)
 ```
 
-背面剔除在 GPU 幾何處理階段 (Geometry Processing) 執行，硬體自動處理，效能開銷極低。
+與 Frustum Culling 不同，Back Face Culling 在 Vertex Shader 執行之後的 Primitive Assembly 階段執行(先完成頂點變換才能判定螢幕空間中的三角形朝向)。因此 Back Face Culling 節省的是後續的光柵化 (Rasterization) 與 Fragment Shader 運算，而非 Vertex Shader 運算。
 
 ## 裁剪 Clipping
 

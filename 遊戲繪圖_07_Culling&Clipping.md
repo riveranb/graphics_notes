@@ -26,7 +26,7 @@ glFrontFace(GL_CCW); // 定義逆時針繞序為正面 (OpenGL 預設)
 glCullFace(GL_BACK); // 剔除背面 (也可指定 GL_FRONT)
 ```
 
-與 Frustum Culling 不同，Back Face Culling 在 Vertex Shader 執行之後的 Primitive Assembly 階段執行(先完成頂點變換才能判定螢幕空間中的三角形朝向)。因此 Back Face Culling 節省的是後續的光柵化 (Rasterization) 與 Fragment Shader 運算，而非 Vertex Shader 運算。
+與 Frustum Culling 不同，Back Face Culling 在 Vertex Shader 執行之後的 Primitive Assembly 階段執行(先完成頂點變換才能判定螢幕空間中的三角形朝向)。因此 Back Face Culling 節省的是後續的光柵化 (Rasterization) 與 Fragment Shader 運算。
 
 ## 裁剪 Clipping
 

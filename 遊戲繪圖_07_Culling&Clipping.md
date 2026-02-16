@@ -37,7 +37,7 @@ Frustum Culling 處理在 CPU 端執行，屬 Graphics Pipeline 之應用階段 
 
 ### 背面剔除 Back Face Culling
 
-![back face culling]
+![back face culling](images/faceculling_frontback.png)
 
 背面剔除 (Back Face Culling) 排除背對相機的三角形面。不透明物體之背面不可見故無需繪製；透明物體情況則不適用。Back Face Culling 屬於 Graphics Fixed Function Pipeline 的功能，GPU 硬體直接支援，開發者透過 Graphics API 啟用剔除並定義正面的頂點繞序 (Winding Order)：順時針或逆時針。
 
@@ -110,5 +110,7 @@ GPU 繪圖管線中，剔除與裁剪在不同階段執行：
 現代遊戲引擎會結合多種剔除技術，在 CPU 與 GPU 端協同工作，最大化渲染效能。
 
 # 參考延伸閱讀
+
+[Face culling](https://learnopengl.com/Advanced-OpenGL/Face-culling)
 
 [Half Space Test](https://www.miguelcasillas.com/?p=43)

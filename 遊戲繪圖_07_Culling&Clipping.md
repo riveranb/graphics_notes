@@ -1,6 +1,6 @@
 # 遊戲開發 - 繪圖剔除與裁剪 Culling & Clipping
 
-世界中所有的物體無法盡收眼底，故相機的視野可見範圍亦是有限的。相機不可見的物體仍進行繪圖處理的話便成了浪費效能的負擔。剔除 (Culling) 與裁剪 (Clipping) 是優化渲染效能的重要技術，透過排除不可見或超出可視範圍的幾何體，減少不必要的繪圖計算。
+世界中所有的物體無法盡收眼底，相機不可見的物體仍進行繪圖處理的話便會浪費效能。Graphics Pipeline 中剔除 (Culling) 與裁剪 (Clipping) 是優化渲染效能的重要技術，透過排除不可見或超出可視範圍的幾何體，減少不必要的繪圖計算。
 
 ## 剔除 Culling
 
@@ -10,23 +10,36 @@
 
 ![frustum culling](images/viewfrustum.png)
 
-視錐剔除 (Frustum Culling) 是最基礎且重要的剔除技術，排除位於相機視錐 (View Frustum) 範圍外的物件。 View Frustum 定義相機的可視範圍，由 Near Plane (最近可視平面)、Far Plane (最遠可視平面) 與 4 個側面平面構成之錐狀體範圍。
+視錐剔除 (Frustum Culling) 是最基礎且重要的剔除技術，排除位於相機視錐 (View Frustum) 範圍外的物件。 View Frustum 定義相機的可視範圍，由 6 個平面 (Near、Far、Left、Right、Top、Bottom) 構成類三角錐體。Frustum Culling 演算法即判定繪圖對象幾何體是否位於 View Frustum 範圍內：
 
-視錐剔除通常在 CPU 端執行，屬 Graphics Pipeline 之應用階段 (Application Stage) 完成。
+**步驟：**
+1. **建構視錐 6 平面**：從 View-Projection Matrix 提取 Near、Far、Left、Right、Top、Bottom 6 個裁剪平面
+2. **取得物件包圍體**：對每個物件取其包圍體 (Bounding Volume，常用 AABB 或 Bounding Sphere)
+3. **逐平面測試**：Bounding Volume 與 6 個平面逐一做半空間測試 (Half-Space Test)
+   > **Half-Space Test**：利用點與平面的數學公式 $D = \mathbf{P} \cdot \mathbf{N} + d$ 計算符號距離。
+   > - $D > 0$：點在平面正向（內側/可見側）
+   > - $D < 0$：點在平面反向（外側/不可見側）
+   > - $D = 0$：點在平面上
+   > 
+   > 對於球體 (Sphere)，若中心點距離 $D < -Radius$，則該球體完全位於平面外側（剔除）。
+4. **判定結果**：
+   - **完全或部分在內側 (Inside | Intersected)**：物件可見，送入繪圖管線
+   - **完全在外側 (Outside)**：物件不可見，直接剔除跳過繪製
+
+視錐剔除處理在 CPU 端執行，屬 Graphics Pipeline 之應用階段 (Application Stage) 完成。
 
 ### 背面剔除 Back Face Culling
 
 ![back face culling]
 
-背面剔除 (Back Face Culling) 排除背對相機的三角形面。不透明物體之背面不可見故無需繪製；透明物體則不適用。Back Face Culling 屬於 Graphics Fixed-Function Pipeline 的功能，GPU 硬體直接支援，開發者透過 Graphics API 啟用剔除並定義正面的頂點繞序 (Winding Order)：順時針 (Clockwise) 或逆時針 (Counter-Clockwise)。
+背面剔除 (Back Face Culling) 排除背對相機的三角形面。不透明物體之背面不可見故無需繪製；透明物體情況則不適用。Back Face Culling 屬於 Graphics Fixed Function Pipeline 的功能，GPU 硬體直接支援，開發者透過 Graphics API 啟用剔除並定義正面的頂點繞序 (Winding Order)：順時針或逆時針。
 
 ```c
+// Back Face Culling 在 Vertex Shader 執行之後的 Primitive Assembly 階段執行(先頂點變換才座標空間後決定螢幕空間的三角形面向)
 glEnable(GL_CULL_FACE); // 啟用背面剔除
-glFrontFace(GL_CCW); // 定義逆時針繞序為正面 (OpenGL 預設)
+glFrontFace(GL_CCW); // (OpenGL 預設)逆時針繞序為正面；CCW = Counter Clock Wise；CW = Clock Wise；
 glCullFace(GL_BACK); // 剔除背面 (也可指定 GL_FRONT)
 ```
-
-與 Frustum Culling 不同，Back Face Culling 在 Vertex Shader 執行之後的 Primitive Assembly 階段執行(先完成頂點變換才能判定螢幕空間中的三角形朝向)。因此 Back Face Culling 節省的是後續的光柵化 (Rasterization) 與 Fragment Shader 運算。
 
 ## 裁剪 Clipping
 

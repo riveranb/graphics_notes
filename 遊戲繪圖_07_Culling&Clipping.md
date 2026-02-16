@@ -16,6 +16,7 @@
 1. **建構視錐 6 平面**：從 View-Projection Matrix 提取 Near、Far、Left、Right、Top、Bottom 6 個裁剪平面公式
 2. **取得物件包圍體**：對每個物件取其包圍體 (Bounding Volume，常用 AABB | Bounding Sphere)
 3. **逐平面測試**：Bounding Volume 與 6 個平面逐一做半空間測試 (Half-Space Test)
+
    ```math
    \begin{aligned}
    &\textbf{Half-Space Test：} D = \mathbf{P} \cdot \mathbf{N} + d \\
@@ -32,7 +33,7 @@
    \end{aligned}
    ```
 
-視錐剔除處理在 CPU 端執行，屬 Graphics Pipeline 之應用階段 (Application Stage) 完成。
+Frustum Culling 處理在 CPU 端執行，屬 Graphics Pipeline 之應用階段 (Application Stage) 完成。
 
 ### 背面剔除 Back Face Culling
 

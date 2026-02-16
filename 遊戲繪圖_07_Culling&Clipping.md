@@ -13,18 +13,24 @@
 視錐剔除 (Frustum Culling) 是最基礎且重要的剔除技術，排除位於相機視錐 (View Frustum) 範圍外的物件。 View Frustum 定義相機的可視範圍，由 6 個平面 (Near、Far、Left、Right、Top、Bottom) 構成類三角錐體。Frustum Culling 演算法即判定繪圖對象幾何體是否位於 View Frustum 範圍內：
 
 **步驟：**
-1. **建構視錐 6 平面**：從 View-Projection Matrix 提取 Near、Far、Left、Right、Top、Bottom 6 個裁剪平面
-2. **取得物件包圍體**：對每個物件取其包圍體 (Bounding Volume，常用 AABB 或 Bounding Sphere)
+1. **建構視錐 6 平面**：從 View-Projection Matrix 提取 Near、Far、Left、Right、Top、Bottom 6 個裁剪平面公式
+2. **取得物件包圍體**：對每個物件取其包圍體 (Bounding Volume，常用 AABB | Bounding Sphere)
 3. **逐平面測試**：Bounding Volume 與 6 個平面逐一做半空間測試 (Half-Space Test)
-   > **Half-Space Test**：利用點與平面的數學公式 $D = \mathbf{P} \cdot \mathbf{N} + d$ 計算符號距離。
-   > - $D > 0$：點在平面正向（內側/可見側）
-   > - $D < 0$：點在平面反向（外側/不可見側）
-   > - $D = 0$：點在平面上
-   > 
-   > 對於球體 (Sphere)，若中心點距離 $D < -Radius$，則該球體完全位於平面外側（剔除）。
-4. **判定結果**：
-   - **完全或部分在內側 (Inside | Intersected)**：物件可見，送入繪圖管線
-   - **完全在外側 (Outside)**：物件不可見，直接剔除跳過繪製
+   ```math
+   \begin{aligned}
+   &\textbf{Half-Space Test：} D = \mathbf{P} \cdot \mathbf{N} + d \\
+   &\quad \bullet \ D > 0 \implies \text{內側 (可見)} \\
+   &\quad \bullet \ D < 0 \implies \text{外側 (不可見)} \\
+   &\quad \bullet \ D = 0 \implies \text{平面上} \\
+   \\
+   &\textbf{Bounding Sphere Culling：} \\
+   &\quad \text{If } D_{center} < -Radius \implies \text{完全位於平面外側 (剔除)} \\
+   \\
+   &\textbf{Result：} \\
+   &\quad \text{完全內部 } | \text{ 有交集} \implies \text{Keep (送入繪圖管線)} \\
+   &\quad \text{完全外部} \implies \text{Cull (直接剔除)}
+   \end{aligned}
+   ```
 
 視錐剔除處理在 CPU 端執行，屬 Graphics Pipeline 之應用階段 (Application Stage) 完成。
 

@@ -110,3 +110,5 @@ GPU 繪圖管線中，剔除與裁剪在不同階段執行：
 現代遊戲引擎會結合多種剔除技術，在 CPU 與 GPU 端協同工作，最大化渲染效能。
 
 # 參考延伸閱讀
+
+[Half Space Test](https://www.miguelcasillas.com/?p=43)

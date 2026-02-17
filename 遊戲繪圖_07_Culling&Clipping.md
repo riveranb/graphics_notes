@@ -79,7 +79,7 @@ GPU Graphics Pipeline 流程中當 Vertex Shader 處理完將頂點轉換至 Cli
 \end{aligned}
 ```
 
-### 視口剔除 Viewport Culling
+### 視口裁剪 Viewport Clipping
 
 Rasterization 階段將 Clip Space 座標經轉換映射至螢幕座標 (Screen Coordinate) 後：
 
@@ -95,18 +95,14 @@ Rasterization 階段將 Clip Space 座標經轉換映射至螢幕座標 (Screen 
 
 Culling & Clipping 技術是遊戲渲染效能優化的核心：
 
-- **減少 Draw Call**：剔除不可見物件，降低 CPU 端繪圖指令提交
-- **減少頂點處理**：避免處理不可見幾何體的頂點著色器運算
-- **減少片段處理**：避免處理不可見像素的片段著色器運算
-- **降低記憶體頻寬**：減少不必要的資料傳輸
+- **減少 Draw Call**：Frustum Culling 剔除不可見物件，降低 Draw Calls。
+- **減少頂點處理**：Back Face Culling 與 Clipping 避免處理不可見幾何體，節省 Vertex Shader 與幾何運算量。
+- **減少光柵化與片段處理**：Clipping 與 Viewport Clipping 避免對不可見區域進行 Rasterization，大幅節省 Fragment 像素處理。
+- **降低記憶體頻寬**：減少不必要的頂點資料存取與 Frame Buffer 寫入（頻寬消耗）。
 
 # 參考延伸閱讀
 
 [Face culling](https://learnopengl.com/Advanced-OpenGL/Face-culling)
-
-[Half Space Test](https://www.miguelcasillas.com/?p=43)
-
-[View Frustum Culling](https://www.miguelcasillas.com/?p=43)
 
 [Clipping](https://en.wikipedia.org/wiki/Clipping_(computer_graphics))
 

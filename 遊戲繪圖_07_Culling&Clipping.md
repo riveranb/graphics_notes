@@ -50,43 +50,41 @@ glCullFace(GL_BACK); // 剔除背面 (也可指定 GL_FRONT)
 
 ## 裁剪 Clipping
 
-裁剪 (Clipping) 處理部分位於視圖範圍內的幾何體，將超出範圍的部分切除，只保留可見區域進行後續渲染。
+經 Frustum Culling 篩選的物件進入 GPU (開始 Graphics Pipeline 繪圖流程)後，可能僅部分位於視錐體內。此時 GPU 硬體會自動執行裁剪 (Clipping)，對部分超出範圍的三角形進行切割與重組 (產生新重組後的三角形)，確保只有位於視錐體內的幾何區域進入後續 Rasterization 階段。
 
-### 視錐裁剪 View Frustum Clipping
+### 視錐剪裁 View Frustum Clipping
 
 ![clipping]
 
-視錐裁剪在投影轉換後執行，將位於 Clip Space 範圍外的頂點與三角形進行裁剪。Clip Space 定義為正規化座標範圍 [-1, -1, -1] ~ [1, 1, 1] 的立方體空間。
+GPU Graphics Pipeline 流程中當 Vertex Shader 處理完將頂點轉換至 Clip Space (正規化座標)後，GPU 硬體會執行幾何裁剪，確保後續光柵化階段只處理位於視錐體內的圖元。
 
-**裁剪平面：**
+現代 GPU 處理機制：
+
+1.  **Near Plane Clipping (必要幾何處理)**：
+    這是必須執行的步驟。針對穿過 Near Plane 的圖元進行真正的幾何切割與重組 (Retriangulation)。
+    *   **目的**：防止頂點位於相機後方導致發生透視除法 ($/w$) 出現除以零之數值錯誤。
+    *   **結果**：生成新的頂點與三角形，確保所有頂點 $w > 0$。
+
+2.  **Guard Band Clipping (效能優化)**：
+    對於 Left、Right、Top、Bottom 邊界，只要三角形未超出硬體設定的「Guard Band」範圍 (通常遠大於視錐體)，GPU 會保留完整三角形進入 Rasterization 階段，超出視窗的部分由 Rasterizer 自動捨棄。如此能大幅減少幾何切割運算的昂貴效能開銷。
+
+**Clip Space 判定條件：**
 
 ```math
 \begin{aligned}
-&\text{Clip Space 裁剪條件：} \\
 &-w \leq x \leq w \\
 &-w \leq y \leq w \\
-&-w \leq z \leq w \\
-&\text{其中 } w \text{ 為齊次座標的 } w \text{ 分量}
+&0 \leq z \leq w \quad \text{(DirectX | Vulkan | Metal)} \\
+&-w \leq z \leq w \quad \text{(OpenGL)}
 \end{aligned}
 ```
 
-**Sutherland-Hodgman 裁剪算法：**
+### 視口剔除 Viewport Culling
 
-經典的多邊形裁剪算法，依序對每個裁剪平面進行裁剪操作。
+Rasterization 階段將 NDC 轉換為螢幕座標 (Screen Coordinates) 後：
 
-```glsl
-// GPU 硬體自動執行裁剪，Vertex Shader 輸出 gl_Position 後
-// GPU 會自動處理超出 Clip Space 的圖元
-void main() {
-    // 計算 Clip Space 座標
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    // GPU 自動裁剪超出範圍的部分
-}
-```
-
-### 視口裁剪 Viewport Clipping
-
-視口裁剪將 Clip Space 座標轉換到屏幕座標時，自動排除超出視口 (Viewport) 範圍的像素。視口定義實際繪圖的屏幕區域。
+*   **行為**：GPU 檢查 Fragment 是否位於 Viewport 或 Scissor Rect 矩形範圍內。
+*   **結果**：位於範圍外的 Fragment 會被直接丟棄 (Discard)。此階段不涉及任何幾何切割，純粹執行 GPU 硬體像素級別過濾。
 
 ## 剔除與裁剪的執行時機
 
@@ -114,3 +112,9 @@ GPU 繪圖管線中，剔除與裁剪在不同階段執行：
 [Face culling](https://learnopengl.com/Advanced-OpenGL/Face-culling)
 
 [Half Space Test](https://www.miguelcasillas.com/?p=43)
+
+[View Frustum Culling](https://www.miguelcasillas.com/?p=43)
+
+[Clipping](https://en.wikipedia.org/wiki/Clipping_(computer_graphics))
+
+[WebGPU Pipeline](https://shi-yan.github.io/webgpuunleashed/Introduction/the_gpu_pipeline.html)

@@ -54,7 +54,7 @@ glCullFace(GL_BACK); // 剔除背面 (也可指定 GL_FRONT)
 
 ### 視錐剪裁 View Frustum Clipping
 
-![clipping]
+![clipping](images/clipping_guardband.jpg)
 
 GPU Graphics Pipeline 流程中當 Vertex Shader 處理完將頂點轉換至 Clip Space (正規化座標)後，GPU 硬體會執行幾何裁剪，確保後續光柵化階段只處理位於視錐體內的圖元。
 
@@ -81,16 +81,9 @@ GPU Graphics Pipeline 流程中當 Vertex Shader 處理完將頂點轉換至 Cli
 
 ### 視口剔除 Viewport Culling
 
-Rasterization 階段將 NDC 轉換為螢幕座標 (Screen Coordinates) 後：
+Rasterization 階段將 Clip Space 座標經轉換映射至螢幕座標 (Screen Coordinate) 後：
 
-*   **行為**：GPU 檢查 Fragment 是否位於 Viewport 或 Scissor Rect 矩形範圍內。
-*   **結果**：位於範圍外的 Fragment 會被直接丟棄 (Discard)。此階段不涉及任何幾何切割，純粹執行 GPU 硬體像素級別過濾。
-
-## 剔除與裁剪的執行時機
-
-![pipeline culling clipping]
-
-GPU 繪圖管線中，剔除與裁剪在不同階段執行：
+*   GPU 檢查 Fragment 是否位於 Viewport 或 Scissor Rect 矩形範圍內。於範圍外的 Fragment 會被直接丟棄 (Discard)。
 
 1. **應用階段 (Application)**：視錐剔除、遮擋剔除
 2. **幾何處理階段 (Geometry Processing)**：背面剔除
@@ -98,14 +91,14 @@ GPU 繪圖管線中，剔除與裁剪在不同階段執行：
 
 ## 效能優化
 
-剔除與裁剪技術是遊戲渲染效能優化的核心：
+針對繪圖剔除，開發者提出更進階的遮擋剔除技術 (Occlusion Culling)，找到 View Frustum 範圍內但不看見的繪圖對象物體，進一步排除減少更多繪圖工作，後續再另外詳細介紹。
+
+Culling & Clipping 技術是遊戲渲染效能優化的核心：
 
 - **減少 Draw Call**：剔除不可見物件，降低 CPU 端繪圖指令提交
 - **減少頂點處理**：避免處理不可見幾何體的頂點著色器運算
 - **減少片段處理**：避免處理不可見像素的片段著色器運算
 - **降低記憶體頻寬**：減少不必要的資料傳輸
-
-現代遊戲引擎會結合多種剔除技術，在 CPU 與 GPU 端協同工作，最大化渲染效能。
 
 # 參考延伸閱讀
 
@@ -116,5 +109,9 @@ GPU 繪圖管線中，剔除與裁剪在不同階段執行：
 [View Frustum Culling](https://www.miguelcasillas.com/?p=43)
 
 [Clipping](https://en.wikipedia.org/wiki/Clipping_(computer_graphics))
+
+[Trip Through the Graphics Pipeline 2011, part 5](https://fgiesen.wordpress.com/2011/07/05/a-trip-through-the-graphics-pipeline-2011-part-5/)
+
+[Guard Band Clipping](https://www.khronos.org/opengl/wiki/Guard_Band)
 
 [WebGPU Pipeline](https://shi-yan.github.io/webgpuunleashed/Introduction/the_gpu_pipeline.html)

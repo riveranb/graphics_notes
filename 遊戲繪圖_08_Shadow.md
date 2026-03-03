@@ -14,24 +14,29 @@ Shadow Volume 為早期主流技術，透過建構燈光實際投射之陰的幾
     *   CPU / Geometry Shader 輪廓幾何計算昂貴。
     *   難以實現 Soft Shadow。
 
-## Shadow Mapping (陰影貼圖)
+## 陰影貼圖 Shadow Mapping
 
-Shadow Map 是基於影像空間 (Image-space) 的技術，核心概念：「**片段若不在光源可視範圍內，則處於陰影中**」。
+Shadow Map 是基於影像空間的即時渲染技術，核心概念：「**片段若不在光源可視範圍內，則處於陰影中**」。
 
 演算法包含兩個 Pass：
-1.  **Shadow Pass**：以光源為攝影機渲染場景，將深度輸出至深度紋理 (Shadow Map)。硬體僅寫入 Depth Buffer (Depth-only Pass)。
-2.  **Lighting Pass**：將片段世界座標轉換至光源空間，比較當前深度與 Shadow Map 紀錄深度——若當前深度較大即為陰影。
+1.  **Shadow Pass**：以光源為 Camera 渲染場景，將被照射物體的深度輸出至深度紋理 (Shadow Map)。硬體僅寫入 Depth Buffer (Depth-only Pass)。
+2.  **Lighting Pass**：物件繪圖階段將像素片段世界座標轉換至光源空間，比較當前深度與 Shadow Map 紀錄深度——若當前深度較大(遠，代表被遮擋)即為陰影。
 
 ![Shadow Mapping Concept](image_placeholder_shadow_map.png)
 
-World Space → Light Clip Space 轉換：
+繪圖過程中 Fragment Shader 執行 Lighting Pass 深度比較之前，需計算將像素座標空間從 **World Space → Light Clip Space → [0, 1] 深度範圍**：
 
 ```math
 \begin{aligned}
-P_{clip} &= M_{proj} \times M_{view} \times P_{world} \quad \text{(Light 的 VP 矩陣)} \\
-D_{current} &= \frac{P_{clip}.z}{P_{clip}.w} \times 0.5 + 0.5 \quad \text{(映射至 [0, 1])}
+x_{clip} &= M_{proj}^{light} \times M_{view}^{light} \times x_{world}
+  & \text{World Space} &\rightarrow \text{Light Clip Space} \\
+D_{current-light} &= \frac{x_{clip}.z}{x_{clip}.w} \times 0.5 + 0.5
+  & \text{Clip Space} &\rightarrow [0, 1] \text{ 深度}
 \end{aligned}
 ```
+
+*   $x_{clip}$：像素片段經光源 View-Projection 轉換後的 Clip Space 座標。
+*   $D_{current-light}$：該像素片段相對於光源的深度值，用於與 Shadow Map 中儲存的深度比較。
 
 Fragment Shader 實作：
 

@@ -104,14 +104,14 @@ Shadow Map 的效能代價主要來自 Shadow Pass 繪圖工作所需要的 Draw
 
 ### Point Light
 
-點光源向所有方向發光。需使用 **Cubemap Shadow Map**——以點光源為原點，對 6 個軸向 (+X, -X, +Y, -Y, +Z, -Z) 使用**透視投影 (Perspective Projection)** 渲染才能保證涵蓋所有方向，共產生 6 張 Shadow Map。
+點光源向所有方向發光，需用 **Cubemap Shadow Map**——以點光源為原點，對 6 個軸向 (+X, -X, +Y, -Y, +Z, -Z) 各用 90 度視野展開角度 (Field of View, FOV) 的**透視投影 (Perspective Projection)** 渲染 Shadow Map。6 面恰好涵蓋完整球面，共產生 6 張 Shadow Map。
 
 *   Fragment Shader 以光源到片段的方向向量採樣 Cubemap，取得對應方向的最近深度。
 *   渲染成本為其他光源的 **6 倍**，是效能優化的重點對象。
 
 ### Spot Light
 
-聚光燈有位置與方向，照射範圍為圓錐體。Shadow Pass 使用**透視投影 (Perspective Projection)**，Field of View (FOV) 對應聚光燈的張角 (Outer Cutoff Angle)。
+聚光燈有位置與方向，照射範圍為圓錐體。Shadow Pass 使用**透視投影 (Perspective Projection)**，視野展開角度設為聚光燈外圈張角 (Outer Cutoff Angle) 之 2 倍，使投影範圍恰好涵蓋照射錐體。
 
 # 參考延伸閱讀
 

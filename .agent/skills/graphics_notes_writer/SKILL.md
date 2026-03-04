@@ -15,7 +15,7 @@ This skill defines the persona, style, and structure for generating graphics pro
 ## 2. Structure & Formatting
 All detailed notes must follow this Markdown structure:
 
-### H1: Topic Title (e.g., # 遊戲繪圖_XX_TopicName)
+### H1: Topic Title
 *   **Brief Introduction**: 1-2 sentences defining the core concept (What & Why).
 
 ### H2: Core Sub-topics

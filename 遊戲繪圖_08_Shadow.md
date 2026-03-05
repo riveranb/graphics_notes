@@ -86,7 +86,7 @@ PCF 無法利用硬體 Mipmap / Bilinear Filtering。VSM 在 Shadow Pass 將 $d$
 Shadow Map 的效能代價主要來自 Shadow Pass 繪圖工作所需要的 Draw Calls、Overdraw 與 Shadow Map 紋理讀寫的記憶體頻寬 (Memory Bandwidth)。以下為常見的優化基本功：
 
 *   **Frustum Culling**：用光源視錐剔除不可見物件，減少 Shadow Pass Draw Call。
-*   **Shadow Proxy**：Shadow Pass 僅需深度，用 Low-poly LOD 取代，省 Vertex ALU 與 Bandwidth。
+*   **Shadow Proxy**：Shadow Pass 僅需深度，用 Low-poly LOD 取代，省頂點運算量與 Bandwidth。
 *   **關閉 Color Write**：Shadow Pass 無顏色輸出需求，關閉省頻寬。
 *   **Front-Face Culling**：僅渲染背面寫入深度，利用幾何厚度解決 Shadow Acne，免調 Depth Bias。
 *   **Early-Z**：Shadow Pass 物件由近到遠排序渲染，最大化硬體 Early-Z 剔除冗餘片段。

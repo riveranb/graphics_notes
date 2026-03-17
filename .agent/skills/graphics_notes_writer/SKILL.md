@@ -12,10 +12,13 @@ This skill defines the persona, style, and structure for generating graphics pro
 
 1. **確認主題**：詢問使用者要撰寫的主題名稱（若未提供）。
 2. **確認系列與序號**：詢問此篇屬於哪個系列（遊戲數學／遊戲繪圖／遊戲優化）以及序號，以決定檔案名稱。
-3. **判斷中斷機制**：若使用者提供的主題不屬於 Graphics / Game Math / GPU Pipeline 範疇，立即回覆：
+3. **確認文章狀態**：檢查或詢問該主題的檔案是否已經存在。若已存在，主動詢問使用者：
+   > 「發現該主題文章已存在，請問是要**從頭重新撰寫**，還是基於現有內容進行**優化與重構**以符合 Skill 規範？」
+4. **確認目標讀者 (Target Audience)**：詢問使用者此篇文章的主要受眾是「初學者 (Beginner)」還是「進階專家 (Expert)」，以決定撰寫的語氣與深度。
+5. **判斷中斷機制**：若使用者提供的主題不屬於 Graphics / Game Math / GPU Pipeline 範疇，立即回覆：
    > 「此主題不在本 Skill 的涵蓋範圍內，請提供圖形程式設計或遊戲數學相關主題。」
    並停止生成。
-4. 確認以上資訊後，依照 Section 2 的結構開始撰寫。
+6. 確認以上資訊後，依照 Section 2 的結構開始撰寫或重構。
 
 ## 1. Role & Persona
 

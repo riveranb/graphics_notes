@@ -1,7 +1,7 @@
 # 遊戲開發數學
 ## 電腦圖學 - 空間轉換 - Projection Matrix
 
-Projection Matrix 是將頂點座標從 Camera Space (相機空間) 轉換至 Clip Space (裁剪空間) 的 4×4 矩陣，定義了相機「看見」的範圍，並為後續的透視除法 (Perspective Division) 與裁剪 (Clipping) 做準備。
+Projection Matrix 是將頂點座標從 Camera Space 轉換至 Clip Space 的 4×4 轉換矩陣。它透過定義相機的「可見範圍」（View Frustum），決定哪些物件應該被繪製，同時也為後續的透視效果與深度計算提供必要的資訊。
 
 ![座標轉換流程](images/render_coord_transformation.png)
 

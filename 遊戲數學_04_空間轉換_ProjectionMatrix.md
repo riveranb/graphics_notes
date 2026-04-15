@@ -445,6 +445,4 @@ void main() {
 
 [Scratchapixel - The Perspective and Orthographic Projection Matrix](https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-introduction.html)
 
-[Microsoft DirectX - D3DXMatrixPerspectiveFovLH](https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectivefovlh)
-
 [The Depth Buffer - Visualizing the Depth Buffer](https://learnopengl.com/Advanced-OpenGL/Depth-testing)

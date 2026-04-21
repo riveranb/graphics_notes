@@ -1,22 +1,16 @@
 # 遊戲開發數學
 ## 電腦圖學 - 空間轉換 - Projection Matrix
 
-Projection Matrix 是將頂點座標從 Camera Space 轉換至 Clip Space 的 4×4 轉換矩陣。它透過定義相機的「可見範圍」（View Frustum），決定哪些物件應該被繪製，同時也為後續的透視效果與深度計算提供必要的資訊。
+Projection Matrix 是將頂點座標從 Camera Space 轉換至 Clip Space 的 4×4 轉換矩陣。它透過定義相機的「可視範圍」（View Frustum），決定哪些物件應該被繪製，同時也為後續的透視效果與深度計算提供必要的資訊。
 
 ![座標轉換流程](images/render_coord_transformation.png)
 
-## 為什麼需要 Projection Matrix？
-
-經過 View Matrix 轉換後，頂點已處於 Camera Space，但此時的座標仍然是真實的 3D 世界單位（公尺、公分等），GPU 無法直接用這些座標決定「哪些東西該畫在螢幕上、畫在哪裡」。
-
-Projection Matrix 的工作就是：
+Projection Matrix 的工作：如果 View Matrix 是「把攝影機擺好位置」，Projection Matrix 就是「調整鏡頭焦距與取景範圍」。
 
 1. **定義可視範圍**：透過 Near/Far Plane、Field of View 等參數界定 View Frustum (視錐體)，只有在此範圍內的物件才會被繪製。
-2. **映射到標準化空間**：將 View Frustum 內的座標壓縮（映射）到一個固定大小的標準化空間——NDC (Normalized Device Coordinates)，讓 GPU 可以統一處理。
-3. **編碼深度資訊**：將 Z 值映射到 $[0, 1]$ 或 $[-1, 1]$ 的範圍，供 Depth Buffer (深度緩衝區) 進行遮擋判斷。
-4. **為透視效果做準備**（僅 Perspective 投影）：利用齊次座標的 $w$ 分量，讓遠處的物件在螢幕上看起來更小（近大遠小）。
-
-簡單比喻：如果 View Matrix 是「把攝影機擺好位置」，Projection Matrix 就是「調整鏡頭焦距與取景範圍」。
+2. **映射到標準化空間**：將 View Frustum 內的座標壓縮映射到一個標準化空間 NDC (Normalized Device Coordinates)，供 GPU (Graphics Pipeline) 統一處理。
+3. **編碼深度資訊**：將座標 $z$ 值映射到 $[0, 1]$ 或 $[-1, 1]$ 的範圍，寫入 Depth Buffer (深度緩衝區) 用於遮擋判斷。
+4. **透視效果**：透視投影 (Perspective Projection) 達成近大遠小效果。
 
 ## Clip Space 與 NDC
 

@@ -115,7 +115,7 @@ P_{persp} &= \begin{bmatrix}
 
 ![FOV](images/projection_fieldofview.png)
 
-3D 引擎通常使用 **Field of View (FOV，垂直視角，$\theta$)** 和 **Aspect Ratio (螢幕長寬比，$a$)** 來設定 (Frustum) 投影範圍：
+3D 引擎通常使用 **Field of View** (FOV，垂直視角， $\theta$ ) 和 **Aspect Ratio** (螢幕長寬比， $a$ ) 來設定 (Frustum) 投影範圍：
 
 - **FOV 較大（廣角鏡頭）**：能看到的範圍越廣，但物體看起來較小，邊緣容易有透視變形。
 - **FOV 較小（望遠鏡頭）**：能看到的範圍越窄，畫面有局部放大的感覺。

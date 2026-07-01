@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 6 — Fragment Shader</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="lesson-nav">
+    <span>圖學渲染入門 · Lesson 6 / 9</span>
+    <a href="../reference/glossary.html">名詞對照表 &rarr;</a>
+</nav>
+<main>
+    <header class="lesson-header">
+        <p class="lesson-meta">Lesson 0006 · 約 8 分鐘 · 有一小段程式碼</p>
+        <h1>Fragment Shader：決定「顏色」的那支程式</h1>
+    </header>
+
+    <div class="pipeline-strip" aria-hidden="true">
+        <span class="stage">Application</span>
+        <span class="stage">Vertex Shader</span>
+        <span class="stage">Rasterization</span>
+        <span class="stage is-current">Fragment Shader</span>
+        <span class="stage">Output Merging</span>
+    </div>
+
+    <section class="callout callout--win">
+        <strong>這堂課結束後，你會：</strong>
+        <ul>
+            <li>知道 Fragment Shader = 每個<strong>片段/像素</strong>跑一次的小程式</li>
+            <li>知道它的工作：算出這個像素的<strong>最終顏色</strong></li>
+            <li>建立除錯直覺：<strong>顏色不對，先來這裡找</strong></li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>第二種你會改的程式碼</h2>
+        <p>
+            Vertex Shader 決定「頂點在哪」，<span class="term">Fragment Shader</span> 決定「每個像素是什麼顏色」。
+            畫面太亮太暗、顏色怪、貼圖沒出來 —— 十之八九改這支。一支最簡單的長這樣：
+        </p>
+        <pre><code>varying vec2 vTexCoord;            // 從 Vertex Shader 內插來的 UV
+uniform sampler2D diffuseMap;     // 一張綁定的貼圖
+
+void main() {
+    vec4 texColor = texture2D(diffuseMap, vTexCoord);  // 用 UV 去貼圖取色
+    gl_FragColor = texColor;                            // 輸出：最終顏色
+}</code></pre>
+    </section>
+
+    <section>
+        <h2>輸入輸出</h2>
+        <ul>
+            <li><span class="term">varying</span>/in — <strong>輸入</strong>：從 Vertex Shader 傳來、被光柵化<strong>內插</strong>過的資料（UV、法線…）</li>
+            <li><span class="term">uniform</span> — <strong>輸入</strong>：全域值，如貼圖 <code>sampler2D</code>、光照參數</li>
+            <li><span class="term">gl_FragColor</span> — <strong>輸出</strong>：這個片段的最終顏色 (r,g,b,a)</li>
+        </ul>
+        <p>
+            上面那行 <code>texture2D(diffuseMap, vTexCoord)</code> 就是「拿 UV 去貼圖上取顏色」——
+            正是下一課 <a href="0007-texture-and-uv.html">Texture</a> 的主題。
+        </p>
+        <div class="callout">
+            兩支 shader 的分工，一句話：<strong>Vertex Shader 算位置，Fragment Shader 算顏色。</strong>
+        </div>
+    </section>
+
+    <section>
+        <h2>它會跑「非常」多次</h2>
+        <p>
+            畫面上每個被蓋到的像素都要跑一次 fragment shader —— 通常比頂點多幾個數量級。
+            所以這裡的每一行都很貴，效能問題常出在這支。
+        </p>
+    </section>
+
+    <section>
+        <h2>快速確認</h2>
+        <div class="quiz">
+            <p class="quiz-prompt">畫面顏色不對，你最先去看哪支 shader？</p>
+            <div class="chip-pool" data-answer="Fragment Shader" data-ok="對了！顏色是 Fragment Shader 的輸出。" data-no="想一下：哪支負責『顏色』？">
+                <button class="chip">Vertex Shader</button>
+                <button class="chip">Fragment Shader</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+        <div class="quiz">
+            <p class="quiz-prompt">Fragment Shader 最主要輸出什麼？（中文或英文）</p>
+            <input type="text" class="quiz-input" id="recall-input" autocomplete="off" placeholder="一個詞">
+            <div class="quiz-actions"><button class="btn" id="check-recall">檢查</button></div>
+            <p class="quiz-feedback" id="recall-feedback"></p>
+        </div>
+    </section>
+
+    <section class="citation">
+        <h2>原始資料 / 延伸閱讀</h2>
+        <ul>
+            <li>本課改寫自 <a href="../../遊戲繪圖_02_Shader.md">遊戲繪圖_02_Shader.md</a>（Fragment Shader 段）</li>
+            <li>推薦閱讀：<a href="https://thebookofshaders.com/" target="_blank" rel="noopener">The Book of Shaders</a>（片段著色器的互動入門）</li>
+        </ul>
+    </section>
+
+    <section class="callout callout--ask">
+        <p>想試著改一支 fragment shader 看畫面變化？問你的教學 agent（<code>/teach</code>）帶你玩。</p>
+    </section>
+
+    <nav class="lesson-nav lesson-nav--bottom">
+        <a href="0005-rasterization.html">&larr; Lesson 5</a>
+        <a href="0007-texture-and-uv.html">Lesson 7 &rarr;</a>
+    </nav>
+</main>
+
+<script>
+(function () {
+    var accepted = ['顏色', 'color', 'gl_fragcolor', 'fragcolor', '像素顏色'];
+    var input = document.getElementById('recall-input');
+    var fb = document.getElementById('recall-feedback');
+    function check() {
+        var v = input.value.trim().toLowerCase();
+        var ok = accepted.indexOf(v) !== -1;
+        fb.textContent = ok ? '對了！最終像素顏色（gl_FragColor）。' : '提示：畫面上你看到的那個東西。';
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+    }
+    document.getElementById('check-recall').addEventListener('click', check);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { check(); } });
+})();
+document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
+    var fb = pool.parentElement.querySelector('.quiz-feedback');
+    pool.addEventListener('click', function (e) {
+        var b = e.target.closest('.chip');
+        if (!b) { return; }
+        var ok = b.textContent.trim() === pool.dataset.answer;
+        fb.textContent = ok ? (pool.dataset.ok || '對了！') : (pool.dataset.no || '再想一下。');
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+        pool.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('is-selected'); });
+        b.classList.add('is-selected');
+    });
+});
+</script>
+</body>
+</html>

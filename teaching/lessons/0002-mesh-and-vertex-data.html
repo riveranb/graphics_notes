@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 2 — Mesh / 頂點資料</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="lesson-nav">
+    <span>圖學渲染入門 · Lesson 2 / 9</span>
+    <a href="../reference/glossary.html">名詞對照表 &rarr;</a>
+</nav>
+<main>
+    <header class="lesson-header">
+        <p class="lesson-meta">Lesson 0002 · 約 8 分鐘 · 無數學</p>
+        <h1>Mesh：電腦怎麼記住一個 3D 模型</h1>
+    </header>
+
+    <section class="callout callout--win">
+        <strong>這堂課結束後，你會：</strong>
+        <ul>
+            <li>知道 Mesh 資料 = 一堆<strong>頂點</strong> + 哪些頂點組成<strong>三角形</strong></li>
+            <li>知道一個頂點除了位置，還帶「屬性」：Normal、UV、Color</li>
+            <li>記得這些屬性是後面幾課的伏筆（Normal→光照、UV→貼圖）</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>先看：模型其實是一堆三角形</h2>
+        <figure>
+            <img src="../../images/point_line_triangle_mesh.png" alt="點 → 線段 → 三角形 → Mesh">
+            <figcaption>很多三角形拼起來，逼近出模型外形 —— 這就是 Mesh。</figcaption>
+        </figure>
+        <p>
+            上一課說過：<span class="term">Vertex</span>（頂點）是空間中的點，3 個頂點圍成一個三角形。
+            那電腦怎麼把整隻模型「存下來」？答案就是一份 <span class="term">Mesh</span> 資料。
+        </p>
+    </section>
+
+    <section>
+        <h2>Mesh 資料 = 頂點 + 索引</h2>
+        <p>一份 Mesh 其實就兩種東西：</p>
+        <ul>
+            <li><strong>頂點資料</strong>：每個頂點的位置與屬性</li>
+            <li><strong>索引資料</strong>（Index）：哪三個頂點組成一個三角形</li>
+        </ul>
+        <p>用索引指定三角形，可以讓相鄰三角形<strong>共用頂點</strong>，省記憶體。一個最小的三角形長這樣：</p>
+        <pre><code>positions = [ -1,-1,0,   1,-1,0,   0,1,0 ]   // 3 個頂點的 (x,y,z)
+indices   = [ 0, 1, 2 ]                       // 用第 0、1、2 個頂點組一個三角形</code></pre>
+        <p style="font-size:0.9rem;color:var(--color-muted)">你不用會寫，只要看懂：這就是「3 個點 + 怎麼連成三角形」。</p>
+    </section>
+
+    <section>
+        <h2>頂點不只有位置：屬性 (Attribute)</h2>
+        <p>每個頂點除了位置 (Position)，還可以帶其他資料，叫<span class="term">頂點屬性</span>。常見的有：</p>
+        <ul>
+            <li><span class="term">Position</span> — 位置 (x,y,z)，決定形狀</li>
+            <li><span class="term">Normal</span> — 法向量，垂直表面的方向，<strong>光照要用</strong>（第 8 課）</li>
+            <li><span class="term">UV</span> — 對應貼圖的座標，<strong>貼圖要用</strong>（第 7 課）</li>
+            <li><span class="term">Color</span> — 頂點顏色 (RGBA)</li>
+        </ul>
+        <div class="callout">
+            這些屬性會一路往下流：它們是 Vertex Shader（第 4 課）的輸入，也是後面光照、貼圖的原料。現在先記得它們存在。
+        </div>
+    </section>
+
+    <section>
+        <h2>怎麼進 GPU：VBO / IBO（名詞認得就好）</h2>
+        <p>
+            CPU 準備好的 Mesh 資料要上傳到 GPU 記憶體才能畫。以 OpenGL 的說法，靠三個緩衝區：
+            <span class="term">VBO</span>（存頂點屬性）、<span class="term">IBO</span>（存索引）、
+            <span class="term">VAO</span>（記住上面兩個怎麼綁）。
+        </p>
+        <p style="font-size:0.9rem;color:var(--color-muted)">
+            這一課你只要認得這幾個縮寫 —— 之後看到程式碼綁 buffer，知道「喔，在餵頂點給 GPU」就夠了。
+        </p>
+    </section>
+
+    <section>
+        <h2>快速確認</h2>
+        <div class="quiz">
+            <p class="quiz-prompt">光照計算會用到頂點的哪個屬性？</p>
+            <div class="chip-pool" data-answer="Normal" data-ok="對了！Normal（法線）表示表面朝向，光照靠它算明暗。" data-no="再想一下：光照要知道「表面面向哪裡」。">
+                <button class="chip">Position</button>
+                <button class="chip">Normal</button>
+                <button class="chip">UV</button>
+                <button class="chip">Color</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+        <div class="quiz">
+            <p class="quiz-prompt">貼圖採樣（把 2D 圖貼到模型上）會用到哪個屬性？</p>
+            <div class="chip-pool" data-answer="UV" data-ok="對了！UV 指向貼圖上的位置。" data-no="再想一下：哪個屬性專門對應到 2D 貼圖座標？">
+                <button class="chip">Position</button>
+                <button class="chip">Normal</button>
+                <button class="chip">UV</button>
+                <button class="chip">Color</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+    </section>
+
+    <section class="citation">
+        <h2>原始資料 / 延伸閱讀</h2>
+        <ul>
+            <li>本課改寫自 <a href="../../遊戲繪圖_03_Mesh.md">遊戲繪圖_03_Mesh.md</a></li>
+            <li>推薦閱讀：<a href="https://learnopengl.com/Getting-started/Hello-Triangle" target="_blank" rel="noopener">LearnOpenGL — Hello Triangle</a>（頂點資料如何進 GPU）</li>
+        </ul>
+    </section>
+
+    <section class="callout callout--ask">
+        <p>看不懂哪段，或想更深入，直接問你的教學 agent（<code>/teach</code>）。</p>
+    </section>
+
+    <nav class="lesson-nav lesson-nav--bottom">
+        <a href="0001-rendering-and-the-pipeline.html">&larr; Lesson 1</a>
+        <a href="0003-coordinate-spaces.html">Lesson 3 &rarr;</a>
+    </nav>
+</main>
+
+<script>
+document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
+    var fb = pool.parentElement.querySelector('.quiz-feedback');
+    pool.addEventListener('click', function (e) {
+        var b = e.target.closest('.chip');
+        if (!b) { return; }
+        var correct = b.textContent.trim() === pool.dataset.answer;
+        fb.textContent = correct ? (pool.dataset.ok || '對了！') : (pool.dataset.no || '再想一下。');
+        fb.className = 'quiz-feedback ' + (correct ? 'correct' : 'incorrect');
+        pool.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('is-selected'); });
+        b.classList.add('is-selected');
+    });
+});
+</script>
+</body>
+</html>

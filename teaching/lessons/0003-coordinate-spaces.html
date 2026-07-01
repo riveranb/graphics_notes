@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 3 — 座標空間 · 直覺篇</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="lesson-nav">
+    <span>圖學渲染入門 · Lesson 3 / 9</span>
+    <a href="../reference/glossary.html">名詞對照表 &rarr;</a>
+</nav>
+<main>
+    <header class="lesson-header">
+        <p class="lesson-meta">Lesson 0003 · 約 9 分鐘 · 數學可選、不必背</p>
+        <h1>座標空間：一路換了幾次「參照系」</h1>
+    </header>
+
+    <section class="callout callout--win">
+        <strong>這堂課結束後，你會：</strong>
+        <ul>
+            <li>懂「座標空間」就是一組<strong>參照系</strong>（一個原點 + 一組軸）</li>
+            <li>記得 3D→2D 路上換了 4 次參照系：Object → World → Camera → Clip → Screen</li>
+            <li>知道每次換系靠一個矩陣，但<strong>矩陣的數學是可選的，這課不用碰</strong></li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>先講個生活比喻</h2>
+        <p>
+            同一個杯子，你可以說「在<strong>我右手邊</strong>」，也可以說「在<strong>房間東北角</strong>」。
+            杯子沒動 —— 只是換了<strong>參照系</strong>。
+        </p>
+        <p>
+            渲染做的事很像：同一個頂點，一路上不斷被換到新的參照系來描述，直到最後變成螢幕上的像素座標。
+            這些參照系，在圖學裡就叫<span class="term">座標空間</span>（Coordinate Space）。
+        </p>
+    </section>
+
+    <section>
+        <h2>一路上的 5 個參照系</h2>
+        <figure>
+            <img src="../../images/render_coord_transformation.png" alt="Object → World → Camera → Clip → Screen">
+            <figcaption>頂點從模型自己的座標，一路換到螢幕像素座標。</figcaption>
+        </figure>
+        <ol>
+            <li><span class="term">Object Space</span> — 以<strong>模型自己</strong>為中心（建模時的座標）</li>
+            <li><span class="term">World Space</span> — 以<strong>場景原點</strong>為中心（物件擺在世界哪裡）</li>
+            <li><span class="term">Camera Space</span> — 以<strong>相機</strong>為中心（從鏡頭看出去）</li>
+            <li><span class="term">Clip Space</span> — 投影後的<strong>標準盒子</strong> [-1,1]（決定看不看得到）</li>
+            <li><span class="term">Screen Space</span> — 最後的<strong>螢幕像素</strong>座標</li>
+        </ol>
+    </section>
+
+    <section>
+        <h2>換系靠矩陣 —— 但別緊張</h2>
+        <p>
+            每一支箭頭（換一次參照系）= 頂點乘上一個 4×4 矩陣。你在 Vertex Shader（下一課）會看到這一行：
+        </p>
+        <pre><code>gl_Position = projectionMatrix * modelViewMatrix * position;</code></pre>
+        <p>那就是這整條路：把頂點從 Object 一路算到 Clip Space。</p>
+        <div class="callout">
+            👉 看到矩陣別緊張。<strong>這課只要你記得「換了幾次、順序是什麼」</strong>。
+            矩陣長怎樣、怎麼推導，是<em>可選</em>的深入內容 —— 想鑽再看
+            <a href="../../遊戲數學_02_線性代數_座標空間.md">遊戲數學_02（座標空間）</a>、
+            <a href="../../遊戲數學_00_線性代數_矩陣.md">遊戲數學_00（矩陣）</a>。不看也能繼續往下。
+        </div>
+    </section>
+
+    <section>
+        <h2>排排看</h2>
+        <div class="quiz" id="order-quiz">
+            <p class="quiz-prompt">依 3D→2D 的順序，依序點選 5 個空間：</p>
+            <div class="chip-pool" id="order-pool">
+                <button class="chip" data-value="world">World Space</button>
+                <button class="chip" data-value="clip">Clip Space</button>
+                <button class="chip" data-value="object">Object Space</button>
+                <button class="chip" data-value="screen">Screen Space</button>
+                <button class="chip" data-value="camera">Camera Space</button>
+            </div>
+            <p>你的順序：</p>
+            <ol class="order-tray" id="order-tray"></ol>
+            <div class="quiz-actions">
+                <button class="btn" id="check-order">檢查</button>
+                <button class="btn btn--ghost" id="reset-order">重來</button>
+            </div>
+            <p class="quiz-feedback" id="order-feedback"></p>
+        </div>
+        <div class="quiz">
+            <p class="quiz-prompt">投影後那個 [-1,1] 的標準盒子，叫哪個空間？</p>
+            <div class="chip-pool" data-answer="Clip Space" data-ok="對了！Clip Space —— 超出這個盒子的東西會被裁掉。" data-no="再想一下：投影後、用來決定「看不看得到」的標準盒子。">
+                <button class="chip">World Space</button>
+                <button class="chip">Camera Space</button>
+                <button class="chip">Clip Space</button>
+                <button class="chip">Screen Space</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+    </section>
+
+    <section class="citation">
+        <h2>原始資料 / 延伸閱讀</h2>
+        <ul>
+            <li>本課改寫自 <a href="../../遊戲數學_02_線性代數_座標空間.md">遊戲數學_02_線性代數_座標空間.md</a>（只取直覺，數學留在原文）</li>
+            <li>推薦閱讀：<a href="https://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/" target="_blank" rel="noopener">opengl-tutorial — Tutorial 3: Matrices</a></li>
+        </ul>
+    </section>
+
+    <section class="callout callout--ask">
+        <p>矩陣哪裡卡住，直接問你的教學 agent（<code>/teach</code>）—— 它可以只講你需要的那一點。</p>
+    </section>
+
+    <nav class="lesson-nav lesson-nav--bottom">
+        <a href="0002-mesh-and-vertex-data.html">&larr; Lesson 2</a>
+        <a href="0004-vertex-shader.html">Lesson 4 &rarr;</a>
+    </nav>
+</main>
+
+<script>
+(function () {
+    var correct = ['object', 'world', 'camera', 'clip', 'screen'];
+    var selected = [];
+    var pool = document.getElementById('order-pool');
+    var tray = document.getElementById('order-tray');
+    var fb = document.getElementById('order-feedback');
+    pool.addEventListener('click', function (e) {
+        var b = e.target.closest('.chip');
+        if (!b || b.disabled) { return; }
+        b.disabled = true;
+        selected.push(b.dataset.value);
+        var li = document.createElement('li');
+        li.textContent = b.textContent;
+        tray.appendChild(li);
+    });
+    document.getElementById('check-order').addEventListener('click', function () {
+        if (selected.length !== correct.length) {
+            fb.textContent = '先把 5 個都點完。';
+            fb.className = 'quiz-feedback';
+            return;
+        }
+        var ok = selected.every(function (v, i) { return v === correct[i]; });
+        fb.textContent = ok
+            ? '對了！Object → World → Camera → Clip → Screen。'
+            : '順序不對：先是模型自己的座標，最後才是螢幕。按重來再試。';
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+    });
+    document.getElementById('reset-order').addEventListener('click', function () {
+        selected = [];
+        tray.innerHTML = '';
+        fb.textContent = '';
+        fb.className = 'quiz-feedback';
+        pool.querySelectorAll('.chip').forEach(function (c) { c.disabled = false; });
+    });
+})();
+
+document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
+    var fb = pool.parentElement.querySelector('.quiz-feedback');
+    pool.addEventListener('click', function (e) {
+        var b = e.target.closest('.chip');
+        if (!b) { return; }
+        var ok = b.textContent.trim() === pool.dataset.answer;
+        fb.textContent = ok ? (pool.dataset.ok || '對了！') : (pool.dataset.no || '再想一下。');
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+        pool.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('is-selected'); });
+        b.classList.add('is-selected');
+    });
+});
+</script>
+</body>
+</html>

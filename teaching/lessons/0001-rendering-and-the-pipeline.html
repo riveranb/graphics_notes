@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 1 — 渲染 + 管線</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="lesson-nav">
+    <span>圖學渲染入門 · Lesson 1 / 9</span>
+    <a href="../reference/glossary.html">名詞對照表 &rarr;</a>
+</nav>
+<main>
+    <header class="lesson-header">
+        <p class="lesson-meta">Lesson 0001 · 約 8 分鐘 · 無數學</p>
+        <h1>渲染 + 管線：先看清這條路的長相</h1>
+    </header>
+
+    <section class="callout callout--win">
+        <strong>這堂課結束後，你會：</strong>
+        <ul>
+            <li>一句話說出「渲染」把什麼變成什麼</li>
+            <li>記得渲染是一連串固定順序的階段，叫「管線」</li>
+            <li><strong>知道你要改的渲染程式碼，幾乎都住在兩個階段：Vertex Shader 和 Fragment Shader</strong></li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>先看結果</h2>
+        <figure>
+            <img src="../../images/graphics_rendering.png" alt="左：3D 模型；右：渲染後的 2D 畫面">
+            <figcaption>左邊是 3D 模型，右邊是螢幕上的 2D 畫面。</figcaption>
+        </figure>
+        <p>
+            中間發生的事，就是這整套課程要帶你走過的<span class="term">渲染管線</span>。
+            你不用先懂任何數學 —— 這堂課只要你認得這條路的長相。
+        </p>
+    </section>
+
+    <section>
+        <h2>渲染 = 3D 進、2D 出</h2>
+        <p>
+            <span class="term">Rendering</span>（渲染）就一件事：輸入 3D 模型（<span class="term">Mesh</span>），輸出一張 2D 圖。
+        </p>
+        <p>
+            Mesh 是什麼？空間中一個點叫 <span class="term">Vertex</span>（頂點），3 個點圍成一個
+            <span class="term">Triangle</span>（三角形），很多三角形拼出模型外形 —— 那就是 Mesh。（細節下一課再看。）
+        </p>
+        <figure>
+            <img src="../../images/point_line_triangle_mesh.png" alt="點 → 線段 → 三角形 → Mesh">
+            <figcaption>點 → 線段 → 三角形 → Mesh。</figcaption>
+        </figure>
+    </section>
+
+    <section>
+        <h2>這條路叫「管線」，資料一棒接一棒</h2>
+        <p>
+            從 3D 到 2D 不是一步到位，而是資料<strong>依序</strong>流過幾個階段，每個階段做一件事、交給下一棒。
+            這就是<span class="term">繪圖管線</span>（Graphics Pipeline）：
+        </p>
+        <div class="pipeline-strip" aria-hidden="true">
+            <span class="stage">Application<small>CPU</small></span>
+            <span class="stage">Vertex Shader</span>
+            <span class="stage">Rasterization</span>
+            <span class="stage">Fragment Shader</span>
+            <span class="stage">Output Merging</span>
+        </div>
+        <p style="font-size:0.85rem;color:var(--color-muted)">
+            （對應 <a href="../../遊戲繪圖_01_GPU繪圖管線.md">筆記</a> 的 Application → Geometry → Rasterization → Fragment Shading → Output Merging。之後每一課，都是在拆開這條線上的一個階段。）
+        </p>
+    </section>
+
+    <section>
+        <h2>重點：其中兩個階段，是你能寫程式的地方</h2>
+        <p>
+            這 5 個階段裡，大部分是<span class="term">固定管線</span>（fixed-function）—— GPU 照硬體既定方式做，
+            你只能開關設定，不能改演算法。
+        </p>
+        <p>
+            但有兩個階段跑的是<strong>你寫的小程式</strong>，叫 <span class="term">Shader</span>（著色器）：
+        </p>
+        <ul>
+            <li><span class="term">Vertex Shader</span> —— 每個<em>頂點</em>跑一次（決定頂點最後落在畫面哪裡）</li>
+            <li><span class="term">Fragment Shader</span> —— 每個<em>片段／像素</em>跑一次（決定那個點是什麼顏色）</li>
+        </ul>
+        <div class="callout">
+            👉 你之後要讀、要改的渲染程式碼，<strong>幾乎都在這兩個 shader 裡</strong>。這就是為什麼整套課程繞著這條管線走。
+        </div>
+    </section>
+
+    <section>
+        <h2>你來標標看</h2>
+        <div class="quiz" id="stage-quiz">
+            <p class="quiz-prompt">點出「你能寫程式」的那兩個階段（shader），再按檢查：</p>
+            <div class="pipeline-strip" id="stage-strip">
+                <button class="stage" data-id="app">Application</button>
+                <button class="stage" data-id="vs">Vertex Shader</button>
+                <button class="stage" data-id="raster">Rasterization</button>
+                <button class="stage" data-id="fs">Fragment Shader</button>
+                <button class="stage" data-id="out">Output Merging</button>
+            </div>
+            <div class="quiz-actions">
+                <button class="btn" id="check-stage">檢查</button>
+                <button class="btn btn--ghost" id="reset-stage">重來</button>
+            </div>
+            <p class="quiz-feedback" id="stage-feedback"></p>
+        </div>
+    </section>
+
+    <section>
+        <h2>再記一次</h2>
+        <div class="quiz" id="recall-quiz">
+            <p class="quiz-prompt">你會修改的渲染程式碼，通常住在哪一種階段？（中文或英文都可以）</p>
+            <input type="text" id="recall-input" class="quiz-input" autocomplete="off" placeholder="一個詞就好">
+            <div class="quiz-actions">
+                <button class="btn" id="check-recall">檢查</button>
+            </div>
+            <p class="quiz-feedback" id="recall-feedback"></p>
+        </div>
+    </section>
+
+    <section class="citation">
+        <h2>原始資料 / 延伸閱讀</h2>
+        <ul>
+            <li>本課改寫自 <a href="../../遊戲繪圖_00_電腦圖學.md">遊戲繪圖_00_電腦圖學.md</a> + <a href="../../遊戲繪圖_01_GPU繪圖管線.md">遊戲繪圖_01_GPU繪圖管線.md</a></li>
+            <li>最溫和的入門（推薦先讀這篇）：<a href="https://www.scratchapixel.com/lessons/3d-basic-rendering/get-started/gentle-introduction-to-computer-graphics-programming.html" target="_blank" rel="noopener">Scratchapixel — Gentle Introduction to Computer Graphics Programming</a></li>
+            <li>想看管線全貌的好文：<a href="https://www.thecandidstartup.org/2023/03/13/trip-graphics-pipeline.html" target="_blank" rel="noopener">A Trip Down The Graphics Pipeline</a></li>
+        </ul>
+    </section>
+
+    <section class="callout callout--ask">
+        <p>任何一段看不懂，或想更深入，直接問你的教學 agent（<code>/teach</code>）—— 它是你的老師。</p>
+    </section>
+
+    <nav class="lesson-nav lesson-nav--bottom">
+        <a href="../reference/glossary.html">📖 名詞對照表</a>
+        <a href="0002-mesh-and-vertex-data.html">Lesson 2 &rarr;</a>
+    </nav>
+</main>
+
+<script>
+(function () {
+    var strip = document.getElementById('stage-strip');
+    var feedback = document.getElementById('stage-feedback');
+
+    strip.addEventListener('click', function (e) {
+        var b = e.target.closest('.stage');
+        if (!b) { return; }
+        b.classList.toggle('is-selected');
+    });
+
+    document.getElementById('check-stage').addEventListener('click', function () {
+        var sel = Array.prototype.map.call(strip.querySelectorAll('.stage.is-selected'), function (b) {
+            return b.dataset.id;
+        }).sort();
+        var correct = sel.length === 2 && sel[0] === 'fs' && sel[1] === 'vs';
+        feedback.textContent = correct
+            ? '對了！Vertex Shader 和 Fragment Shader 就是你能寫程式的兩個階段。'
+            : '還沒。提示：一個處理「頂點」、一個處理「顏色」，兩個都叫 Shader。按重來再試。';
+        feedback.className = 'quiz-feedback ' + (correct ? 'correct' : 'incorrect');
+    });
+
+    document.getElementById('reset-stage').addEventListener('click', function () {
+        strip.querySelectorAll('.stage.is-selected').forEach(function (b) { b.classList.remove('is-selected'); });
+        feedback.textContent = '';
+        feedback.className = 'quiz-feedback';
+    });
+})();
+
+(function () {
+    var accepted = ['shader', '著色器', 'shaders', 'vertex shader', 'fragment shader'];
+    var input = document.getElementById('recall-input');
+    var feedback = document.getElementById('recall-feedback');
+
+    function check() {
+        var val = input.value.trim().toLowerCase();
+        var correct = accepted.indexOf(val) !== -1;
+        feedback.textContent = correct
+            ? '對了！Shader（著色器）—— Vertex Shader 或 Fragment Shader。'
+            : '再想一下：那兩個「你能寫程式」的階段，統稱叫什麼？';
+        feedback.className = 'quiz-feedback ' + (correct ? 'correct' : 'incorrect');
+    }
+
+    document.getElementById('check-recall').addEventListener('click', check);
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { check(); }
+    });
+})();
+</script>
+</body>
+</html>

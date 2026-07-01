@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>名詞對照表 — 圖學渲染入門</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="lesson-nav">
+    <a href="../lessons/0001-rendering-and-the-pipeline.html">&larr; Lesson 1</a>
+    <span>名詞對照表（涵蓋 Lesson 1–9）</span>
+</nav>
+<main>
+    <header>
+        <p class="lesson-meta">Reference · Glossary</p>
+        <h1>圖學渲染名詞對照表</h1>
+        <p>這 9 課教到的名詞都收在這。之後的 lesson 一律沿用這裡的中英對照，不重新翻譯。</p>
+    </header>
+
+    <table class="glossary-table">
+        <thead>
+            <tr><th>English</th><th>中文</th><th>一句話定義</th><th>出處</th></tr>
+        </thead>
+        <tbody>
+            <tr><td class="term">Rendering</td><td>渲染</td><td>把 3D 模型（Mesh）變成一張 2D 圖像。</td><td>L1</td></tr>
+            <tr><td class="term">Graphics Pipeline</td><td>繪圖管線</td><td>3D→2D 之間一連串固定順序的處理階段。</td><td>L1</td></tr>
+            <tr><td class="term">Fixed-function</td><td>固定管線</td><td>GPU 照硬體既定方式處理、只能設定不能改演算法的階段。</td><td>L1</td></tr>
+            <tr><td class="term">Shader</td><td>著色器</td><td>管線中你可以寫程式（GLSL）控制的小程式。</td><td>L1</td></tr>
+            <tr><td class="term">Mesh</td><td>網格</td><td>由許多三角形拼成、逼近模型外形的資料。</td><td>L1 / L2</td></tr>
+            <tr><td class="term">Vertex</td><td>頂點</td><td>空間中的一個點，Mesh 的最小單位。</td><td>L1 / L2</td></tr>
+            <tr><td class="term">Triangle</td><td>三角形</td><td>3 個頂點圍成的面，Mesh 的基本組成。</td><td>L1</td></tr>
+            <tr><td class="term">Fragment</td><td>片段</td><td>光柵化後對應一個像素位置、帶顏色/深度等資訊的資料單位。</td><td>L1 / L5</td></tr>
+            <tr><td class="term">Vertex Attribute</td><td>頂點屬性</td><td>頂點攜帶的資料：Position、Normal、UV、Color 等。</td><td>L2</td></tr>
+            <tr><td class="term">Normal</td><td>法向量</td><td>垂直表面的方向向量，光照計算要用。</td><td>L2 / L8</td></tr>
+            <tr><td class="term">UV</td><td>紋理座標</td><td>頂點對應到貼圖上的座標 (u,v) ∈ [0,1]。</td><td>L2 / L7</td></tr>
+            <tr><td class="term">Index</td><td>索引</td><td>指定哪些頂點組成一個三角形，讓相鄰面共用頂點。</td><td>L2</td></tr>
+            <tr><td class="term">VBO / IBO / VAO</td><td>頂點/索引/陣列緩衝物件</td><td>把 Mesh 頂點與索引上傳、綁定給 GPU 的三種緩衝。</td><td>L2</td></tr>
+            <tr><td class="term">Coordinate Space</td><td>座標空間</td><td>一組參照系：一個原點 + 一組軸，用來描述位置。</td><td>L3</td></tr>
+            <tr><td class="term">Object Space</td><td>物件空間</td><td>以模型自己為中心的座標（建模時）。</td><td>L3</td></tr>
+            <tr><td class="term">World Space</td><td>世界空間</td><td>以場景原點為中心，物件擺在世界哪裡。</td><td>L3</td></tr>
+            <tr><td class="term">Camera Space</td><td>相機空間</td><td>以相機為中心、從鏡頭看出去的座標。</td><td>L3</td></tr>
+            <tr><td class="term">Clip Space</td><td>裁剪空間</td><td>投影後的標準盒子 [-1,1]，超出的被裁掉。</td><td>L3 / L4</td></tr>
+            <tr><td class="term">Screen Space</td><td>螢幕空間</td><td>最終輸出裝置上的像素座標。</td><td>L3</td></tr>
+            <tr><td class="term">MVP Matrix</td><td>模型/視圖/投影矩陣</td><td>把頂點從 Object 一路換到 Clip Space 的矩陣（modelView × projection）。</td><td>L3 / L4</td></tr>
+            <tr><td class="term">Vertex Shader</td><td>頂點著色器</td><td>每個頂點跑一次，算出頂點在 Clip Space 的位置。</td><td>L1 / L4</td></tr>
+            <tr><td class="term">attribute / uniform / varying</td><td>GLSL 變數修飾</td><td>attribute=頂點輸入、uniform=全域輸入、varying=傳給下一階段的輸出。</td><td>L4</td></tr>
+            <tr><td class="term">gl_Position</td><td>—</td><td>Vertex Shader 必須輸出：頂點在 Clip Space 的位置。</td><td>L4</td></tr>
+            <tr><td class="term">Rasterization</td><td>光柵化</td><td>把三角形填成一格格片段，並內插頂點資料。</td><td>L5</td></tr>
+            <tr><td class="term">Interpolation</td><td>內插</td><td>由 3 個頂點的值，線性算出三角形內每個片段的值。</td><td>L5</td></tr>
+            <tr><td class="term">Frustum Culling</td><td>視錐剔除</td><td>相機視野外的整個物件在 CPU 端就丟掉。</td><td>L5</td></tr>
+            <tr><td class="term">Back Face Culling</td><td>背面剔除</td><td>背對相機的三角形面丟掉不畫。</td><td>L5</td></tr>
+            <tr><td class="term">Clipping</td><td>裁剪</td><td>跨出視野邊界的三角形，切掉超出的部分。</td><td>L5</td></tr>
+            <tr><td class="term">Fragment Shader</td><td>片段著色器</td><td>每個片段跑一次，算出最終像素顏色。</td><td>L1 / L6</td></tr>
+            <tr><td class="term">gl_FragColor</td><td>—</td><td>Fragment Shader 輸出：片段的最終顏色 (r,g,b,a)。</td><td>L6</td></tr>
+            <tr><td class="term">sampler2D</td><td>貼圖採樣器</td><td>Fragment Shader 用來讀取一張貼圖的 uniform 型別。</td><td>L6 / L7</td></tr>
+            <tr><td class="term">Texture</td><td>貼圖</td><td>貼到模型表面的 2D 圖像。</td><td>L7</td></tr>
+            <tr><td class="term">Texture Mapping</td><td>貼圖映射</td><td>用 UV 把 2D 貼圖對應到 3D 表面。</td><td>L7</td></tr>
+            <tr><td class="term">Sampling</td><td>採樣</td><td>用 UV 去貼圖上取一個顏色（Texel）。</td><td>L7</td></tr>
+            <tr><td class="term">Filtering</td><td>過濾</td><td>UV 落在像素之間如何取色：Nearest（銳利）/ Linear（平滑）。</td><td>L7</td></tr>
+            <tr><td class="term">Wrapping</td><td>環繞模式</td><td>UV 超出 [0,1] 如何處理：Repeat（重複）/ Clamp（夾邊）。</td><td>L7</td></tr>
+            <tr><td class="term">Mipmap</td><td>多層級紋理</td><td>預先做好的一組縮小貼圖，遠處自動換小張，減少閃爍。</td><td>L7</td></tr>
+            <tr><td class="term">Lighting</td><td>光照</td><td>用數學模型算每個表面點的明暗/顏色。</td><td>L8</td></tr>
+            <tr><td class="term">Ambient / Diffuse / Specular</td><td>環境光 / 漫反射 / 高光</td><td>Phong 光照的三個分量：基礎亮度 / 正對光較亮 / 光滑表面亮點。</td><td>L8</td></tr>
+            <tr><td class="term">Phong</td><td>Phong 光照模型</td><td>Ambient + Diffuse + Specular 三分量相加。</td><td>L8</td></tr>
+            <tr><td class="term">Directional / Point / Spot</td><td>平行光 / 點光 / 聚光</td><td>三種基礎光源：太陽 / 燈泡（會衰減）/ 手電筒（錐形）。</td><td>L8</td></tr>
+            <tr><td class="term">Depth Test</td><td>深度測試</td><td>比較片段深度，近的才畫、遠的丟掉，自動解決遮擋。</td><td>L9</td></tr>
+            <tr><td class="term">Depth Buffer (Z-buffer)</td><td>深度緩衝</td><td>存每個像素「離鏡頭多遠」的緩衝區。</td><td>L9</td></tr>
+            <tr><td class="term">Blending</td><td>顏色混合</td><td>把新片段顏色和背景已有顏色混合，做透明/發光。</td><td>L9</td></tr>
+            <tr><td class="term">Alpha Blending</td><td>Alpha 混合</td><td>來源色×α + 背景色×(1−α)，一般透明。</td><td>L9</td></tr>
+            <tr><td class="term">Additive</td><td>加法混合</td><td>直接把顏色相加，越疊越亮，火焰/粒子常用。</td><td>L9</td></tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

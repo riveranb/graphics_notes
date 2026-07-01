@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 9 — Depth test + Blending</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="lesson-nav">
+    <span>圖學渲染入門 · Lesson 9 / 9</span>
+    <a href="../reference/glossary.html">名詞對照表 &rarr;</a>
+</nav>
+<main>
+    <header class="lesson-header">
+        <p class="lesson-meta">Lesson 0009 · 約 9 分鐘 · 最後一課</p>
+        <h1>Depth test + Blending：誰擋誰、怎麼混色</h1>
+    </header>
+
+    <div class="pipeline-strip" aria-hidden="true">
+        <span class="stage">Application</span>
+        <span class="stage">Vertex Shader</span>
+        <span class="stage">Rasterization</span>
+        <span class="stage">Fragment Shader</span>
+        <span class="stage is-current">Output Merging</span>
+    </div>
+
+    <section class="callout callout--win">
+        <strong>這堂課結束後，你會：</strong>
+        <ul>
+            <li>知道 Depth test（Z-buffer）：<strong>近的擋遠的</strong>，GPU 自動處理不透明遮擋</li>
+            <li>知道透明物體的兩個規矩：<strong>關深度寫入</strong> + <strong>從後往前畫</strong></li>
+            <li>知道 Blending 換 factor 就換效果（Alpha / Additive）</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>先看：近的為什麼會擋住遠的</h2>
+        <figure>
+            <img src="../../images/3dscene_depth.png" alt="場景的深度圖">
+            <figcaption>GPU 為每個像素記一個「離鏡頭多遠」的深度值。</figcaption>
+        </figure>
+        <p>
+            Fragment Shader 算完顏色，還沒真的寫進畫面。最後這個 <span class="term">Output Merging</span> 階段，
+            GPU 會先做<span class="term">Depth test</span>（深度測試）。
+        </p>
+    </section>
+
+    <section>
+        <h2>Depth test：比誰近</h2>
+        <p>
+            每個片段都有深度（離鏡頭多遠）。要寫進畫面前，先跟 <span class="term">Depth Buffer</span>（Z-buffer）比：
+            <strong>比較近才畫上去，比較遠就丟掉</strong>（被前面的擋住了）。
+            不透明物體的遮擋關係，就這樣自動搞定，你不用管畫的順序。
+        </p>
+    </section>
+
+    <section>
+        <h2>Blending：透明是「混色」不是「覆蓋」</h2>
+        <p>
+            不透明像素直接覆蓋。但透明像素要跟<strong>後面已經畫好的顏色混合</strong>，這叫 <span class="term">Blending</span>。最常見的 Alpha 混合：
+        </p>
+        <pre><code>最終色 = 來源色 × α  +  背景色 × (1 − α)      // α = 透明度 0~1</code></pre>
+        <figure>
+            <img src="../../images/transparency_back2front_sorting.png" alt="透明物體從後往前排序繪製">
+            <figcaption>透明物體要從後往前畫，混色順序才對。</figcaption>
+        </figure>
+        <div class="callout">
+            透明的兩個坑（<strong>最常見的透明 bug 根因</strong>）：<br>
+            1. 透明物體要<strong>關掉深度寫入</strong>，否則會擋住後面該透出來的東西。<br>
+            2. 要<strong>從後往前排序</strong>畫，因為混色公式不可交換（先後不同、結果不同）。
+        </div>
+        <p>
+            換一組 <span class="term">Blend Factor</span> 就換一種效果：<strong>Alpha Blending</strong>（一般透明）、
+            <strong>Additive</strong>（發光，越疊越亮，火焰/粒子常用）。
+        </p>
+    </section>
+
+    <section>
+        <h2>快速確認</h2>
+        <div class="quiz">
+            <p class="quiz-prompt">透明物體疊起來顏色怪怪的，最可能是什麼沒做對？</p>
+            <div class="chip-pool" data-answer="繪製順序（後→前）" data-ok="對了！透明要從後往前排序畫，混色順序才正確。" data-no="想一下：混色公式和『先後』有關的那件事。">
+                <button class="chip">繪製順序（後→前）</button>
+                <button class="chip">貼圖 Filtering</button>
+                <button class="chip">頂點數量</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+        <div class="quiz">
+            <p class="quiz-prompt">「近的擋住遠的」是靠哪個 buffer？（中文或英文）</p>
+            <input type="text" class="quiz-input" id="recall-input" autocomplete="off" placeholder="一個詞">
+            <div class="quiz-actions"><button class="btn" id="check-recall">檢查</button></div>
+            <p class="quiz-feedback" id="recall-feedback"></p>
+        </div>
+    </section>
+
+    <section class="callout callout--win">
+        <strong>🎉 你走完整條管線了！</strong>
+        <div class="pipeline-strip" aria-hidden="true" style="margin-top:0.6em">
+            <span class="stage">Application</span>
+            <span class="stage">Vertex Shader</span>
+            <span class="stage">Rasterization</span>
+            <span class="stage">Fragment Shader</span>
+            <span class="stage">Output Merging</span>
+        </div>
+        <p style="margin-bottom:0">
+            從 Mesh 進去，到像素寫進畫面。現在看到渲染程式碼，你應該能說出它落在哪一階段了。
+        </p>
+    </section>
+
+    <section>
+        <h2>接下來可以往哪走</h2>
+        <ul>
+            <li><strong>進階主題</strong>（之後可加課）：NormalMap（用貼圖假造凹凸）、Shadow（陰影）。</li>
+            <li><strong>路 2 — 跟著程式碼走</strong>：打開一支真實的 effect / shader，逐段對照這 9 課。</li>
+            <li><strong>路 3 — 跟著 bug 走</strong>：全黑、貼圖爆掉、z-fighting、透明怪、物件消失 —— 每個症狀對應這條管線的一站。</li>
+        </ul>
+    </section>
+
+    <section class="citation">
+        <h2>原始資料 / 延伸閱讀</h2>
+        <ul>
+            <li>Blending 改寫自 <a href="../../遊戲繪圖_05_Blending.md">遊戲繪圖_05_Blending.md</a>；Depth 取自 <a href="../../遊戲繪圖_01_GPU繪圖管線.md">遊戲繪圖_01</a> 的 Per-Fragment 段（<code>遊戲繪圖_10_Depth.md</code> 目前尚未撰寫）。</li>
+            <li>推薦閱讀：<a href="https://learnopengl.com/Advanced-OpenGL/Depth-testing" target="_blank" rel="noopener">LearnOpenGL — Depth Testing</a> ／ <a href="https://learnopengl.com/Advanced-OpenGL/Blending" target="_blank" rel="noopener">Blending</a></li>
+        </ul>
+    </section>
+
+    <section class="callout callout--ask">
+        <p>想開始「路 2」或「路 3」，或把某一課挖深？跟你的教學 agent（<code>/teach</code>）說一聲。</p>
+    </section>
+
+    <nav class="lesson-nav lesson-nav--bottom">
+        <a href="0008-lighting.html">&larr; Lesson 8</a>
+        <a href="../reference/glossary.html">📖 名詞對照表</a>
+    </nav>
+</main>
+
+<script>
+(function () {
+    var accepted = ['depth', 'depth buffer', 'z-buffer', 'zbuffer', '深度', '深度緩衝', 'z buffer'];
+    var input = document.getElementById('recall-input');
+    var fb = document.getElementById('recall-feedback');
+    function check() {
+        var v = input.value.trim().toLowerCase();
+        var ok = accepted.indexOf(v) !== -1;
+        fb.textContent = ok ? '對了！Depth Buffer（Z-buffer）。' : '提示：跟「深度 / 離鏡頭多遠」有關的緩衝區。';
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+    }
+    document.getElementById('check-recall').addEventListener('click', check);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { check(); } });
+})();
+document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
+    var fb = pool.parentElement.querySelector('.quiz-feedback');
+    pool.addEventListener('click', function (e) {
+        var b = e.target.closest('.chip');
+        if (!b) { return; }
+        var ok = b.textContent.trim() === pool.dataset.answer;
+        fb.textContent = ok ? (pool.dataset.ok || '對了！') : (pool.dataset.no || '再想一下。');
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+        pool.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('is-selected'); });
+        b.classList.add('is-selected');
+    });
+});
+</script>
+</body>
+</html>

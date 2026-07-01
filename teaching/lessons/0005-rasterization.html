@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 5 — Rasterization</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="lesson-nav">
+    <span>圖學渲染入門 · Lesson 5 / 9</span>
+    <a href="../reference/glossary.html">名詞對照表 &rarr;</a>
+</nav>
+<main>
+    <header class="lesson-header">
+        <p class="lesson-meta">Lesson 0005 · 約 8 分鐘 · 無數學</p>
+        <h1>Rasterization：三角形變成一格格像素</h1>
+    </header>
+
+    <div class="pipeline-strip" aria-hidden="true">
+        <span class="stage">Application</span>
+        <span class="stage">Vertex Shader</span>
+        <span class="stage is-current">Rasterization</span>
+        <span class="stage">Fragment Shader</span>
+        <span class="stage">Output Merging</span>
+    </div>
+
+    <section class="callout callout--win">
+        <strong>這堂課結束後，你會：</strong>
+        <ul>
+            <li>知道光柵化 = 把三角形「填」成一格格<strong>片段</strong>（fragment ≈ 像素）</li>
+            <li>知道每個片段的資料（顏色、UV…）是從 3 個頂點<strong>內插</strong>來的</li>
+            <li>知道這附近會把看不到的東西丟掉：Culling 與 Clipping</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>先看：怎麼把三角形填滿</h2>
+        <figure>
+            <img src="../../images/rasterization.gif" alt="三角形被光柵化成像素格">
+            <figcaption>Vertex Shader 給出三角形的 3 個角，GPU 在這一步把中間的像素「填」出來。</figcaption>
+        </figure>
+        <p>
+            Vertex Shader 算完頂點位置後，三角形還只是「3 個角」。
+            <span class="term">Rasterization</span>（光柵化）就是把三角形涵蓋到的每個像素位置，變成一個
+            <span class="term">Fragment</span>（片段）—— 帶著位置、顏色、深度、UV 等資訊，準備送去上色。
+        </p>
+    </section>
+
+    <section>
+        <h2>片段的資料哪來的？內插</h2>
+        <figure>
+            <img src="../../images/raster_trianglefill.png" alt="三角形內部像素由頂點內插">
+            <figcaption>三角形內部每個像素的值，是從 3 個頂點「線性內插」算出來的。</figcaption>
+        </figure>
+        <p>
+            輸入只有 3 個頂點，但中間有成千上萬個像素。GPU 用<span class="term">內插</span>（Linear Interpolation）：
+            越靠近哪個頂點，就越像那個頂點的值。所以第 4 課 Vertex Shader 用 <code>varying</code> 傳出的 UV、法線，
+            到了這裡會被內插，變成每個片段各自的值 —— 下一課 Fragment Shader 就吃這些。
+        </p>
+    </section>
+
+    <section>
+        <h2>順手丟掉看不到的：Culling &amp; Clipping</h2>
+        <ul>
+            <li><span class="term">Frustum Culling</span> — 相機視野外的整個物件，早在 CPU 端就丟掉，不送 GPU。</li>
+            <li><span class="term">Back Face Culling</span> — 背對相機的三角形面丟掉（不透明物體背面看不到）。</li>
+            <li><span class="term">Clipping</span> — 跨出視野邊界的三角形，GPU 自動切掉超出的部分。</li>
+        </ul>
+        <div class="callout">
+            一句話記住：這些都是<strong>「不畫看不到的東西」</strong>來省效能。若物件<strong>整個消失</strong>，很常是被 culling / clipping 或面向（winding order）搞掉了。
+        </div>
+    </section>
+
+    <section>
+        <h2>快速確認</h2>
+        <div class="quiz">
+            <p class="quiz-prompt">三角形內部每個像素的顏色/UV，是怎麼來的？</p>
+            <div class="chip-pool" data-answer="從 3 個頂點內插" data-ok="對了！線性內插 —— 越靠近某個頂點就越像它。" data-no="想一下：輸入只有 3 個頂點，中間的像素值怎麼補出來？">
+                <button class="chip">從 3 個頂點內插</button>
+                <button class="chip">每個像素隨機給</button>
+                <button class="chip">複製第一個頂點</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+        <div class="quiz">
+            <p class="quiz-prompt">把三角形變成一堆片段的階段，叫什麼？（中文或英文）</p>
+            <input type="text" class="quiz-input" id="recall-input" autocomplete="off" placeholder="一個詞">
+            <div class="quiz-actions"><button class="btn" id="check-recall">檢查</button></div>
+            <p class="quiz-feedback" id="recall-feedback"></p>
+        </div>
+    </section>
+
+    <section class="citation">
+        <h2>原始資料 / 延伸閱讀</h2>
+        <ul>
+            <li>本課改寫自 <a href="../../遊戲繪圖_00_電腦圖學.md">遊戲繪圖_00_電腦圖學.md</a>（光柵化段）+ <a href="../../遊戲繪圖_07_Culling&Clipping.md">遊戲繪圖_07_Culling&Clipping.md</a></li>
+            <li>推薦閱讀：<a href="https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-stage.html" target="_blank" rel="noopener">Scratchapixel — Rasterization Stage</a></li>
+        </ul>
+    </section>
+
+    <section class="callout callout--ask">
+        <p>物件消失、面破洞這類問題想追下去，問你的教學 agent（<code>/teach</code>）。</p>
+    </section>
+
+    <nav class="lesson-nav lesson-nav--bottom">
+        <a href="0004-vertex-shader.html">&larr; Lesson 4</a>
+        <a href="0006-fragment-shader.html">Lesson 6 &rarr;</a>
+    </nav>
+</main>
+
+<script>
+(function () {
+    var accepted = ['rasterization', '光柵化', 'raster'];
+    var input = document.getElementById('recall-input');
+    var fb = document.getElementById('recall-feedback');
+    function check() {
+        var v = input.value.trim().toLowerCase();
+        var ok = accepted.indexOf(v) !== -1;
+        fb.textContent = ok ? '對了！Rasterization（光柵化）。' : '提示：三角形 →「一格格」的那個動作。';
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+    }
+    document.getElementById('check-recall').addEventListener('click', check);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { check(); } });
+})();
+document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
+    var fb = pool.parentElement.querySelector('.quiz-feedback');
+    pool.addEventListener('click', function (e) {
+        var b = e.target.closest('.chip');
+        if (!b) { return; }
+        var ok = b.textContent.trim() === pool.dataset.answer;
+        fb.textContent = ok ? (pool.dataset.ok || '對了！') : (pool.dataset.no || '再想一下。');
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+        pool.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('is-selected'); });
+        b.classList.add('is-selected');
+    });
+});
+</script>
+</body>
+</html>

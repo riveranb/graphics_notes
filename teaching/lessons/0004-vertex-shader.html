@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 4 — Vertex Shader</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="lesson-nav">
+    <span>圖學渲染入門 · Lesson 4 / 9</span>
+    <a href="../reference/glossary.html">名詞對照表 &rarr;</a>
+</nav>
+<main>
+    <header class="lesson-header">
+        <p class="lesson-meta">Lesson 0004 · 約 9 分鐘 · 有一小段程式碼</p>
+        <h1>Vertex Shader：你會改的第一種程式碼</h1>
+    </header>
+
+    <div class="pipeline-strip" aria-hidden="true">
+        <span class="stage">Application</span>
+        <span class="stage is-current">Vertex Shader</span>
+        <span class="stage">Rasterization</span>
+        <span class="stage">Fragment Shader</span>
+        <span class="stage">Output Merging</span>
+    </div>
+
+    <section class="callout callout--win">
+        <strong>這堂課結束後，你會：</strong>
+        <ul>
+            <li>知道 Vertex Shader = 每個<strong>頂點</strong>跑一次的小程式</li>
+            <li>知道它最重要的工作：算出 <code>gl_Position</code>（頂點在 Clip Space 的位置）</li>
+            <li>看得懂一支最簡單的 vertex shader 每一行在幹嘛</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>先看它長怎樣</h2>
+        <p>這就是一支最基本的 Vertex Shader（GLSL）。別怕，我們一行行拆：</p>
+        <pre><code>attribute vec3 position;          // 頂點位置（來自 Mesh）
+attribute vec2 texCoord;          // 頂點 UV
+uniform   mat4 modelViewMatrix;   // 全域：Object→Camera 的矩陣
+uniform   mat4 projectionMatrix;  // 全域：投影矩陣
+varying   vec2 vTexCoord;         // 要傳給 Fragment Shader 的資料
+
+void main() {
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vTexCoord = texCoord;
+}</code></pre>
+    </section>
+
+    <section>
+        <h2>三種變數，看關鍵字就懂</h2>
+        <ul>
+            <li><span class="term">attribute</span> — <strong>輸入</strong>：這個頂點自己的資料（位置、UV、法線…就是第 2 課的頂點屬性）</li>
+            <li><span class="term">uniform</span> — <strong>輸入</strong>：整批頂點共用的全域值（例如那兩個矩陣）</li>
+            <li><span class="term">varying</span> — <strong>輸出</strong>：算好後傳給 Fragment Shader 的資料</li>
+        </ul>
+        <p>
+            還有一個一定要輸出的內建變數 <code>gl_Position</code> —— 頂點在 <span class="term">Clip Space</span> 的位置。
+            那一行矩陣乘法，正是第 3 課說的「把頂點從 Object 一路換到 Clip Space」。
+        </p>
+        <div class="callout">
+            重點只有一句：<strong>Vertex Shader 決定「每個頂點最後落在畫面哪裡」</strong>。模型位置、相機、投影不對，通常來這裡找。
+        </div>
+    </section>
+
+    <section>
+        <h2>它會跑很多次</h2>
+        <p>
+            模型有幾個頂點，這支程式就跑幾次（而且是 GPU 大量<strong>平行</strong>同時算）。
+            所以 vertex shader 要簡單快 —— 每個頂點都要付一次成本。
+        </p>
+    </section>
+
+    <section>
+        <h2>快速確認</h2>
+        <div class="quiz">
+            <p class="quiz-prompt">上面那支 shader，哪一行決定「頂點最後在畫面的位置」？</p>
+            <div class="chip-pool" data-answer="gl_Position = ... * position" data-ok="對了！輸出 gl_Position 就是頂點的最終（Clip Space）位置。" data-no="再看一下：哪一行寫進了 gl_Position？">
+                <button class="chip">gl_Position = ... * position</button>
+                <button class="chip">vTexCoord = texCoord</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+        <div class="quiz">
+            <p class="quiz-prompt">Vertex Shader 一定要輸出哪個內建變數？（英文，一個詞）</p>
+            <input type="text" class="quiz-input" id="recall-input" autocomplete="off" placeholder="gl_...">
+            <div class="quiz-actions"><button class="btn" id="check-recall">檢查</button></div>
+            <p class="quiz-feedback" id="recall-feedback"></p>
+        </div>
+    </section>
+
+    <section class="citation">
+        <h2>原始資料 / 延伸閱讀</h2>
+        <ul>
+            <li>本課改寫自 <a href="../../遊戲繪圖_02_Shader.md">遊戲繪圖_02_Shader.md</a>（Vertex Shader 段）</li>
+            <li>推薦閱讀：<a href="https://learnopengl.com/Getting-started/Shaders" target="_blank" rel="noopener">LearnOpenGL — Shaders</a></li>
+        </ul>
+    </section>
+
+    <section class="callout callout--ask">
+        <p>GLSL 語法卡住？直接問你的教學 agent（<code>/teach</code>）。</p>
+    </section>
+
+    <nav class="lesson-nav lesson-nav--bottom">
+        <a href="0003-coordinate-spaces.html">&larr; Lesson 3</a>
+        <a href="0005-rasterization.html">Lesson 5 &rarr;</a>
+    </nav>
+</main>
+
+<script>
+document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
+    var fb = pool.parentElement.querySelector('.quiz-feedback');
+    pool.addEventListener('click', function (e) {
+        var b = e.target.closest('.chip');
+        if (!b) { return; }
+        var ok = b.textContent.trim() === pool.dataset.answer;
+        fb.textContent = ok ? (pool.dataset.ok || '對了！') : (pool.dataset.no || '再想一下。');
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+        pool.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('is-selected'); });
+        b.classList.add('is-selected');
+    });
+});
+(function () {
+    var accepted = ['gl_position', 'glposition', 'position'];
+    var input = document.getElementById('recall-input');
+    var fb = document.getElementById('recall-feedback');
+    function check() {
+        var v = input.value.trim().toLowerCase();
+        var ok = accepted.indexOf(v) !== -1;
+        fb.textContent = ok ? '對了！gl_Position —— 頂點在 Clip Space 的位置。' : '提示：gl_ 開頭，跟「位置」有關。';
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+    }
+    document.getElementById('check-recall').addEventListener('click', check);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { check(); } });
+})();
+</script>
+</body>
+</html>

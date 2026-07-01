@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 8 — Lighting</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="lesson-nav">
+    <span>圖學渲染入門 · Lesson 8 / 9</span>
+    <a href="../reference/glossary.html">名詞對照表 &rarr;</a>
+</nav>
+<main>
+    <header class="lesson-header">
+        <p class="lesson-meta">Lesson 0008 · 約 9 分鐘 · 數學只講直覺</p>
+        <h1>Lighting：讓平面的東西「立體」起來</h1>
+    </header>
+
+    <div class="pipeline-strip" aria-hidden="true">
+        <span class="stage">Application</span>
+        <span class="stage">Vertex Shader</span>
+        <span class="stage">Rasterization</span>
+        <span class="stage is-current">Fragment Shader</span>
+        <span class="stage">Output Merging</span>
+    </div>
+
+    <section class="callout callout--win">
+        <strong>這堂課結束後，你會：</strong>
+        <ul>
+            <li>知道光照 = 用簡單數學算「每個點多亮」</li>
+            <li>記得 Phong 三分量：<strong>Ambient + Diffuse + Specular</strong></li>
+            <li>懂 Diffuse 為什麼需要頂點 <strong>Normal</strong>（呼應第 2 課）</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>先看：有光才立體</h2>
+        <figure>
+            <img src="../../images/lighting_phong_basic.png" alt="Phong 光照三分量">
+            <figcaption>同一顆球，加了光照才有立體感。</figcaption>
+        </figure>
+        <p>
+            <span class="term">Lighting</span>（光照）就是在 Fragment Shader 裡，替每個像素算一個亮度/顏色，
+            模擬光打在表面上的效果。最經典的做法把光拆成三塊相加。
+        </p>
+    </section>
+
+    <section>
+        <h2>Phong 三分量</h2>
+        <ul>
+            <li><span class="term">Ambient</span>（環境光）— 整體基礎亮度，避免暗處全黑。</li>
+            <li><span class="term">Diffuse</span>（漫反射）— <strong>越正對光的表面越亮</strong>。這是塑造立體感的主力。</li>
+            <li><span class="term">Specular</span>（鏡面高光）— 光滑表面上的<strong>亮點</strong>，只在特定視角看得到。</li>
+        </ul>
+        <figure>
+            <img src="../../images/lighting_diffuse.png" alt="漫反射：正對光的面較亮">
+            <figcaption>Diffuse：表面越正對光源，越亮。</figcaption>
+        </figure>
+        <div class="callout">
+            <span class="term">Phong</span> = Ambient + Diffuse + Specular，三個加起來。
+            Diffuse 的直覺就一句：<strong>「表面朝向」對上「光的方向」越正，越亮</strong> —— 所以它需要每個頂點的
+            <span class="term">Normal</span>（法線）。這就是第 2 課那個屬性的用途。
+            （實際公式 <code>N·L</code> 等細節是可選的，想看在 <a href="../../遊戲繪圖_06_Lighting.md">遊戲繪圖_06</a>。）
+        </div>
+    </section>
+
+    <section>
+        <h2>光源類型（一句話認得）</h2>
+        <ul>
+            <li><span class="term">Directional</span> — 太陽：方向固定、不衰減。</li>
+            <li><span class="term">Point</span> — 燈泡：從一點發散，<strong>離越遠越暗</strong>（衰減）。</li>
+            <li><span class="term">Spot</span> — 手電筒：錐形，有方向也有角度。</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>快速確認</h2>
+        <div class="quiz">
+            <p class="quiz-prompt">「正對光的那面比較亮」是哪個分量？</p>
+            <div class="chip-pool" data-answer="Diffuse" data-ok="對了！Diffuse（漫反射）—— 靠 Normal 對上光向算亮度。" data-no="想一下：塑造整體明暗、靠表面朝向的那個。">
+                <button class="chip">Ambient</button>
+                <button class="chip">Diffuse</button>
+                <button class="chip">Specular</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+        <div class="quiz">
+            <p class="quiz-prompt">光滑表面上的「亮點高光」是哪個分量？</p>
+            <div class="chip-pool" data-answer="Specular" data-ok="對了！Specular（鏡面高光）。" data-no="想一下：只在特定視角看到的那個亮點。">
+                <button class="chip">Ambient</button>
+                <button class="chip">Diffuse</button>
+                <button class="chip">Specular</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+    </section>
+
+    <section class="citation">
+        <h2>原始資料 / 延伸閱讀</h2>
+        <ul>
+            <li>本課改寫自 <a href="../../遊戲繪圖_06_Lighting.md">遊戲繪圖_06_Lighting.md</a></li>
+            <li>推薦閱讀：<a href="https://learnopengl.com/Lighting/Basic-Lighting" target="_blank" rel="noopener">LearnOpenGL — Basic Lighting</a></li>
+        </ul>
+    </section>
+
+    <section class="callout callout--ask">
+        <p>想看 N·L 到底怎麼算，或調光照參數看效果？問你的教學 agent（<code>/teach</code>）。</p>
+    </section>
+
+    <nav class="lesson-nav lesson-nav--bottom">
+        <a href="0007-texture-and-uv.html">&larr; Lesson 7</a>
+        <a href="0009-depth-and-blending.html">Lesson 9 &rarr;</a>
+    </nav>
+</main>
+
+<script>
+document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
+    var fb = pool.parentElement.querySelector('.quiz-feedback');
+    pool.addEventListener('click', function (e) {
+        var b = e.target.closest('.chip');
+        if (!b) { return; }
+        var ok = b.textContent.trim() === pool.dataset.answer;
+        fb.textContent = ok ? (pool.dataset.ok || '對了！') : (pool.dataset.no || '再想一下。');
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+        pool.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('is-selected'); });
+        b.classList.add('is-selected');
+    });
+});
+</script>
+</body>
+</html>

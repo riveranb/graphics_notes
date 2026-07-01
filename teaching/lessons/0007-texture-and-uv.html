@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 7 — Texture + UV</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="lesson-nav">
+    <span>圖學渲染入門 · Lesson 7 / 9</span>
+    <a href="../reference/glossary.html">名詞對照表 &rarr;</a>
+</nav>
+<main>
+    <header class="lesson-header">
+        <p class="lesson-meta">Lesson 0007 · 約 9 分鐘 · 無數學</p>
+        <h1>Texture + UV：把一張圖貼到模型上</h1>
+    </header>
+
+    <div class="pipeline-strip" aria-hidden="true">
+        <span class="stage">Application</span>
+        <span class="stage">Vertex Shader</span>
+        <span class="stage">Rasterization</span>
+        <span class="stage is-current">Fragment Shader</span>
+        <span class="stage">Output Merging</span>
+    </div>
+
+    <section class="callout callout--win">
+        <strong>這堂課結束後，你會：</strong>
+        <ul>
+            <li>知道 Texture = 貼在模型表面的 2D 圖，用 <strong>UV</strong> 對位</li>
+            <li>知道採樣（sampling）就是「用 UV 去圖上取一個顏色」</li>
+            <li>認得兩個常出 bug 的設定：<strong>Filtering</strong>（平滑）與 <strong>Wrapping</strong>（超界）</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>先看：圖怎麼貼上去</h2>
+        <figure>
+            <img src="../../images/texturemapping.png" alt="2D 貼圖映射到 3D 模型表面">
+            <figcaption>一張 2D 圖（Texture），靠 UV 對應到模型表面。</figcaption>
+        </figure>
+        <p>
+            模型本身只有形狀。要有花紋、木紋、臉，就靠<span class="term">Texture</span>（貼圖）——
+            一張 2D 圖，貼到三角形表面上。這個技術叫 <span class="term">Texture Mapping</span>。
+        </p>
+    </section>
+
+    <section>
+        <h2>UV：每個頂點記「我對應圖上哪一點」</h2>
+        <figure>
+            <img src="../../images/texturemapping_uv.gif" alt="UV 座標系統">
+            <figcaption>UV 座標範圍 [0,1]，指向貼圖上的位置。</figcaption>
+        </figure>
+        <p>
+            第 2 課提過頂點屬性 <span class="term">UV</span>：每個頂點帶一組 (u,v) ∈ [0,1]，指向貼圖上的一點。
+            光柵化把 UV 內插到每個片段，Fragment Shader 再用它去<span class="term">採樣</span>（sampling）取顏色 ——
+            就是第 6 課看到的 <code>texture2D(map, vTexCoord)</code>。
+        </p>
+    </section>
+
+    <section>
+        <h2>兩個常出 bug 的設定</h2>
+        <p><strong>Filtering（過濾）</strong>—— 一個 UV 落在像素之間時，怎麼取色：</p>
+        <ul>
+            <li><span class="term">Nearest</span>：取最近的一格 → 銳利、像素風，但放大會鋸齒</li>
+            <li><span class="term">Linear</span>：鄰近幾格平均 → 平滑，但可能糊</li>
+        </ul>
+        <p><strong>Wrapping（環繞）</strong>—— UV 超出 [0,1] 時怎麼辦：</p>
+        <ul>
+            <li><span class="term">Repeat</span>：重複貼（磁磚、地板）</li>
+            <li><span class="term">Clamp</span>：夾在邊界（避免邊緣接縫）</li>
+        </ul>
+        <figure>
+            <img src="../../images/texturemapping_wrapping_opengl.png" alt="OpenGL 各種 wrapping 模式">
+            <figcaption>同一張圖、不同 Wrapping：Repeat / Mirrored / Clamp-to-edge / Clamp-to-border。</figcaption>
+        </figure>
+        <div class="callout">
+            貼圖<strong>鋸齒/糊</strong>多半是 Filtering；貼圖<strong>接縫/破圖/重複怪</strong>多半是 Wrapping 或 UV。
+            （另有 <span class="term">Mipmap</span>：遠處自動換小張貼圖，減少閃爍 —— 先知道名字即可。）
+        </div>
+    </section>
+
+    <section>
+        <h2>快速確認</h2>
+        <div class="quiz">
+            <p class="quiz-prompt">貼圖放大後一格一格有鋸齒，想要平滑，Filtering 該選？</p>
+            <div class="chip-pool" data-answer="Linear" data-ok="對了！Linear 會把鄰近像素平均，邊緣較平滑。" data-no="想一下：哪個會做『平均/內插』？">
+                <button class="chip">Nearest</button>
+                <button class="chip">Linear</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+        <div class="quiz">
+            <p class="quiz-prompt">頂點上、指向貼圖位置的座標叫什麼？（英文兩個字母）</p>
+            <input type="text" class="quiz-input" id="recall-input" autocomplete="off" placeholder="?">
+            <div class="quiz-actions"><button class="btn" id="check-recall">檢查</button></div>
+            <p class="quiz-feedback" id="recall-feedback"></p>
+        </div>
+    </section>
+
+    <section class="citation">
+        <h2>原始資料 / 延伸閱讀</h2>
+        <ul>
+            <li>本課改寫自 <a href="../../遊戲繪圖_04_Texture.md">遊戲繪圖_04_Texture.md</a></li>
+            <li>推薦閱讀：<a href="https://learnopengl.com/Getting-started/Textures" target="_blank" rel="noopener">LearnOpenGL — Textures</a></li>
+        </ul>
+    </section>
+
+    <section class="callout callout--ask">
+        <p>貼圖跑掉、UV 接縫想追根因？問你的教學 agent（<code>/teach</code>）。</p>
+    </section>
+
+    <nav class="lesson-nav lesson-nav--bottom">
+        <a href="0006-fragment-shader.html">&larr; Lesson 6</a>
+        <a href="0008-lighting.html">Lesson 8 &rarr;</a>
+    </nav>
+</main>
+
+<script>
+(function () {
+    var accepted = ['uv', 'u,v', 'uv 座標', 'texcoord'];
+    var input = document.getElementById('recall-input');
+    var fb = document.getElementById('recall-feedback');
+    function check() {
+        var v = input.value.trim().toLowerCase();
+        var ok = accepted.indexOf(v) !== -1;
+        fb.textContent = ok ? '對了！UV。' : '提示：兩個字母，U 和 V。';
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+    }
+    document.getElementById('check-recall').addEventListener('click', check);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { check(); } });
+})();
+document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
+    var fb = pool.parentElement.querySelector('.quiz-feedback');
+    pool.addEventListener('click', function (e) {
+        var b = e.target.closest('.chip');
+        if (!b) { return; }
+        var ok = b.textContent.trim() === pool.dataset.answer;
+        fb.textContent = ok ? (pool.dataset.ok || '對了！') : (pool.dataset.no || '再想一下。');
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+        pool.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('is-selected'); });
+        b.classList.add('is-selected');
+    });
+});
+</script>
+</body>
+</html>

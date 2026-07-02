@@ -219,6 +219,17 @@ figcaption {
     max-width: 320px;
 }
 
+.quiz-textarea {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    padding: 0.5em 0.7em;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    width: 100%;
+    min-height: 3.2em;
+    resize: vertical;
+}
+
 .quiz-actions {
     margin-top: 0.8em;
     display: flex;

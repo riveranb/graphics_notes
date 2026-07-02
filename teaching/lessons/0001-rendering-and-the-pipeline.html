@@ -60,11 +60,11 @@
             這就是<span class="term">繪圖管線</span>（Graphics Pipeline）：
         </p>
         <div class="pipeline-strip" aria-hidden="true">
-            <span class="stage">Application<small>CPU</small></span>
-            <span class="stage">Vertex Shader</span>
-            <span class="stage">Rasterization</span>
-            <span class="stage">Fragment Shader</span>
-            <span class="stage">Output Merging</span>
+            <span class="stage">Application<small>準備資料 (CPU)</small></span>
+            <span class="stage">Vertex Shader<small>算頂點位置</small></span>
+            <span class="stage">Rasterization<small>填成像素</small></span>
+            <span class="stage">Fragment Shader<small>算顏色</small></span>
+            <span class="stage">Output Merging<small>寫進畫面</small></span>
         </div>
         <p style="font-size:0.85rem;color:var(--color-muted)">
             （對應 <a href="../../遊戲繪圖_01_GPU繪圖管線.md">筆記</a> 的 Application → Geometry → Rasterization → Fragment Shading → Output Merging。之後每一課，都是在拆開這條線上的一個階段。）
@@ -84,39 +84,49 @@
             <li><span class="term">Vertex Shader</span> —— 每個<em>頂點</em>跑一次（決定頂點最後落在畫面哪裡）</li>
             <li><span class="term">Fragment Shader</span> —— 每個<em>片段／像素</em>跑一次（決定那個點是什麼顏色）</li>
         </ul>
+        <p>
+            有了這兩個 shader，整條管線就從早期的 <span class="term">Fixed Function Pipeline</span>（固定管線）
+            進化成 <span class="term">Programmable Pipeline</span>（可程式化管線）。
+        </p>
         <div class="callout">
             👉 你之後要讀、要改的渲染程式碼，<strong>幾乎都在這兩個 shader 裡</strong>。這就是為什麼整套課程繞著這條管線走。
         </div>
     </section>
 
     <section>
-        <h2>你來標標看</h2>
-        <div class="quiz" id="stage-quiz">
-            <p class="quiz-prompt">點出「你能寫程式」的那兩個階段（shader），再按檢查：</p>
-            <div class="pipeline-strip" id="stage-strip">
-                <button class="stage" data-id="app">Application</button>
-                <button class="stage" data-id="vs">Vertex Shader</button>
-                <button class="stage" data-id="raster">Rasterization</button>
-                <button class="stage" data-id="fs">Fragment Shader</button>
-                <button class="stage" data-id="out">Output Merging</button>
-            </div>
-            <div class="quiz-actions">
-                <button class="btn" id="check-stage">檢查</button>
-                <button class="btn btn--ghost" id="reset-stage">重來</button>
-            </div>
-            <p class="quiz-feedback" id="stage-feedback"></p>
-        </div>
-    </section>
+        <h2>隨堂測驗</h2>
 
-    <section>
-        <h2>再記一次</h2>
-        <div class="quiz" id="recall-quiz">
-            <p class="quiz-prompt">你會修改的渲染程式碼，通常住在哪一種階段？（中文或英文都可以）</p>
-            <input type="text" id="recall-input" class="quiz-input" autocomplete="off" placeholder="一個詞就好">
-            <div class="quiz-actions">
-                <button class="btn" id="check-recall">檢查</button>
+        <div class="quiz">
+            <p class="quiz-prompt">1. Fixed Function Pipeline 和 Programmable Pipeline 最主要的差別是？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="可程式化階段能跑你寫的 shader，固定階段只能開關設定" data-ok="對了！可程式化 = 你寫 shader；固定 = 只能調設定、不能改演算法。" data-no="回到上面「重點」段：差別在能不能跑你自己寫的 shader。">
+                <button class="chip">可程式化階段能跑你寫的 shader，固定階段只能開關設定</button>
+                <button class="chip">可程式化管線只是為了支援更多的顏色數量</button>
+                <button class="chip">固定管線比較新，所以效能也比較好</button>
+                <button class="chip">不管固定或可程式化，畫出來的結果都一樣</button>
             </div>
-            <p class="quiz-feedback" id="recall-feedback"></p>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">2. Vertex Shader 負責什麼？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="算出每個頂點在畫面上的位置" data-ok="對了！Vertex Shader 決定每個頂點最後落在畫面哪裡。" data-no="想一下：它處理的是「頂點」，管的是位置還是顏色？">
+                <button class="chip">算出每個頂點在畫面上的位置</button>
+                <button class="chip">算出每個像素的顏色</button>
+                <button class="chip">把三角形填成一格格像素</button>
+                <button class="chip">準備資料、送出繪圖指令</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">3. Fragment Shader 負責什麼？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="算出每個片段/像素的顏色" data-ok="對了！Fragment Shader 決定每個像素是什麼顏色。" data-no="想一下：它處理的是「片段/像素」，管的是位置還是顏色？">
+                <button class="chip">算出每個片段/像素的顏色</button>
+                <button class="chip">算出每個頂點的位置</button>
+                <button class="chip">把三角形填成一格格像素</button>
+                <button class="chip">準備資料、送出繪圖指令</button>
+            </div>
+            <p class="quiz-feedback"></p>
         </div>
     </section>
 
@@ -140,53 +150,18 @@
 </main>
 
 <script>
-(function () {
-    var strip = document.getElementById('stage-strip');
-    var feedback = document.getElementById('stage-feedback');
-
-    strip.addEventListener('click', function (e) {
-        var b = e.target.closest('.stage');
+document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
+    var fb = pool.parentElement.querySelector('.quiz-feedback');
+    pool.addEventListener('click', function (e) {
+        var b = e.target.closest('.chip');
         if (!b) { return; }
-        b.classList.toggle('is-selected');
+        var ok = b.textContent.trim() === pool.dataset.answer;
+        fb.textContent = ok ? (pool.dataset.ok || '對了！') : (pool.dataset.no || '再想一下。');
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+        pool.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('is-selected'); });
+        b.classList.add('is-selected');
     });
-
-    document.getElementById('check-stage').addEventListener('click', function () {
-        var sel = Array.prototype.map.call(strip.querySelectorAll('.stage.is-selected'), function (b) {
-            return b.dataset.id;
-        }).sort();
-        var correct = sel.length === 2 && sel[0] === 'fs' && sel[1] === 'vs';
-        feedback.textContent = correct
-            ? '對了！Vertex Shader 和 Fragment Shader 就是你能寫程式的兩個階段。'
-            : '還沒。提示：一個處理「頂點」、一個處理「顏色」，兩個都叫 Shader。按重來再試。';
-        feedback.className = 'quiz-feedback ' + (correct ? 'correct' : 'incorrect');
-    });
-
-    document.getElementById('reset-stage').addEventListener('click', function () {
-        strip.querySelectorAll('.stage.is-selected').forEach(function (b) { b.classList.remove('is-selected'); });
-        feedback.textContent = '';
-        feedback.className = 'quiz-feedback';
-    });
-})();
-
-(function () {
-    var accepted = ['shader', '著色器', 'shaders', 'vertex shader', 'fragment shader'];
-    var input = document.getElementById('recall-input');
-    var feedback = document.getElementById('recall-feedback');
-
-    function check() {
-        var val = input.value.trim().toLowerCase();
-        var correct = accepted.indexOf(val) !== -1;
-        feedback.textContent = correct
-            ? '對了！Shader（著色器）—— Vertex Shader 或 Fragment Shader。'
-            : '再想一下：那兩個「你能寫程式」的階段，統稱叫什麼？';
-        feedback.className = 'quiz-feedback ' + (correct ? 'correct' : 'incorrect');
-    }
-
-    document.getElementById('check-recall').addEventListener('click', check);
-    input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { check(); }
-    });
-})();
+});
 </script>
 </body>
 </html>

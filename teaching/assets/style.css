@@ -337,6 +337,19 @@ figcaption {
     font-weight: 600;
 }
 
+/* stacked variant: single-answer multiple choice with sentence-length options */
+
+.chip-pool--stack {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.chip-pool--stack .chip {
+    border-radius: 6px;
+    text-align: left;
+    padding: 0.55em 0.9em;
+}
+
 /* --- code blocks --- */
 
 pre {

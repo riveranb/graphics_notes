@@ -44,6 +44,10 @@
             <tr><td class="term">Clip Space</td><td>裁剪空間</td><td>投影後的標準盒子 [-1,1]，超出的被裁掉。</td><td>L3 / L4</td></tr>
             <tr><td class="term">Screen Space</td><td>螢幕空間</td><td>最終輸出裝置上的像素座標。</td><td>L3</td></tr>
             <tr><td class="term">MVP Matrix</td><td>模型/視圖/投影矩陣</td><td>把頂點從 Object 一路換到 Clip Space 的矩陣（modelView × projection）。</td><td>L3 / L4</td></tr>
+            <tr><td class="term">Left / Right-handed</td><td>左手/右手座標系</td><td>X 右、Y 上時 Z 方向的兩種慣例：右手（OpenGL/Cocos）Z 朝外，左手（DirectX/Unity）Z 朝裡。</td><td>L3</td></tr>
+            <tr><td class="term">Perspective Projection</td><td>透視投影</td><td>近大遠小（模擬人眼），可視範圍是截頭金字塔。3D 場景用。</td><td>L3</td></tr>
+            <tr><td class="term">Orthographic Projection</td><td>正交投影</td><td>平行投影，遠近一樣大不變形，可視範圍是箱形。UI/2D/CAD 用。</td><td>L3</td></tr>
+            <tr><td class="term">View Frustum</td><td>視錐體</td><td>相機的可視範圍；透視投影下是一個截頭金字塔。</td><td>L3 / L5</td></tr>
             <tr><td class="term">Vertex Shader</td><td>頂點著色器</td><td>每個頂點跑一次，算出頂點在 Clip Space 的位置。</td><td>L1 / L4</td></tr>
             <tr><td class="term">attribute / uniform / varying</td><td>GLSL 變數修飾</td><td>attribute=頂點輸入、uniform=全域輸入、varying=傳給下一階段的輸出。</td><td>L4</td></tr>
             <tr><td class="term">gl_Position</td><td>—</td><td>Vertex Shader 必須輸出：頂點在 Clip Space 的位置。</td><td>L4</td></tr>

@@ -29,11 +29,12 @@
     <section>
         <h2>先講個生活比喻</h2>
         <p>
-            同一個杯子，你可以說「在<strong>我右手邊</strong>」，也可以說「在<strong>房間東北角</strong>」。
-            杯子沒動 —— 只是換了<strong>參照系</strong>。
+            想像你在幫朋友拍照。他臉上的痣長在左臉頰——這是「他自己身上」的說法。
+            他站在客廳沙發旁——這是「這個房間」的說法。你舉起相機，從你的角度看，他在觀景窗右下角——這是「你看出去」的說法，觀景窗外的東西不會入鏡。
+            按下快門，他就變成照片上某個像素位置——<strong>同一個人沒有動，只是每次換了「用誰的角度描述」</strong>。
         </p>
         <p>
-            渲染做的事很像：同一個頂點，一路上不斷被換到新的參照系來描述，直到最後變成螢幕上的像素座標。
+            渲染做的事一模一樣：同一個頂點，一路上不斷被換到新的參照系來描述，直到最後變成螢幕上的像素座標。
             這些參照系，在圖學裡就叫<span class="term">座標空間</span>（Coordinate Space）。
         </p>
     </section>
@@ -54,12 +55,114 @@
     </section>
 
     <section>
+        <h2>Camera Space 長什麼樣</h2>
+        <figure>
+            <img src="../../images/cameraspace.png" alt="Camera Space：以相機為原點，右/上/前三軸">
+            <figcaption>Camera Space：原點就在鏡頭上，三根軸是鏡頭的右(X)、上(Y)、前。</figcaption>
+        </figure>
+        <p>
+            換到 Camera Space，等於「把整個世界搬到鏡頭面前」：原點不再是場景中心，而是<strong>鏡頭本身</strong>。
+            OpenGL、Cocos（右手座標系）裡，鏡頭看向 <strong>−Z</strong> —— 所以正前方的東西，z 值是負的。
+        </p>
+    </section>
+
+    <section>
+        <h2>每一支箭頭，都有名字</h2>
+        <p>換一次參照系就是一支箭頭，每支箭頭有自己的負責人：</p>
+        <table class="glossary-table">
+            <thead>
+                <tr><th>從 → 到</th><th>誰負責</th><th>做什麼</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Object → World</td><td class="term">Model Matrix</td><td>把模型擺進世界（位置、旋轉、縮放）</td></tr>
+                <tr><td>World → Camera</td><td class="term">View Matrix</td><td>換成「從鏡頭看出去」的視角</td></tr>
+                <tr><td>Camera → Clip</td><td class="term">Projection Matrix</td><td>投影（近大遠小），壓進 [-1,1] 的盒子</td></tr>
+                <tr><td>Clip → Screen</td><td>Viewport 轉換</td><td>GPU 自動做：透視除法 + 對應到螢幕像素</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size:0.9rem;color:var(--color-muted)">
+            記住這幾個名字 —— 下一課 shader 裡的變數 <code>modelViewMatrix</code>、<code>projectionMatrix</code> 就是它們。其中 <code>modelViewMatrix</code> = Model × View，把頂點一路帶到 <strong>Camera Space</strong>；再乘 <code>projectionMatrix</code> 才進 Clip Space。
+        </p>
+    </section>
+
+    <section>
+        <h2>投影有兩種：透視 vs 正交</h2>
+        <p>「Camera → Clip」這一步（Projection Matrix）有兩種做法，差別就在畫面有沒有「近大遠小」：</p>
+        <div class="two-col">
+            <figure>
+                <img src="../../images/projection_perspective.png" alt="透視投影：視錐體是截頭金字塔">
+                <figcaption><strong>透視 Perspective</strong>：近大遠小（模擬人眼）。可視範圍是截頭金字塔 <span class="term">view frustum</span>。</figcaption>
+            </figure>
+            <figure>
+                <img src="../../images/projection_orthogonal.png" alt="正交投影：視體是箱形">
+                <figcaption><strong>正交 Orthographic</strong>：遠近一樣大、不變形。可視範圍是箱形。</figcaption>
+            </figure>
+        </div>
+        <ul>
+            <li><span class="term">透視</span> —— 3D 遊戲場景、第一/三人稱視角，要有縱深感。</li>
+            <li><span class="term">正交</span> —— UI、血條、2D 遊戲、等角（isometric）、CAD 製圖 —— 不希望東西因遠近而變大小。</li>
+        </ul>
+        <p style="font-size:0.9rem;color:var(--color-muted)">
+            透視常調兩個參數：<strong>FOV</strong>（視角，大＝廣角看得廣、小＝望遠像放大）、<strong>near / far</strong>（可視的最近／最遠距離）。
+        </p>
+    </section>
+
+    <section>
+        <h2>誰做？在哪個管線階段？</h2>
+        <p>把這 5 個空間接回 Lesson 1 的管線 —— 每一步到底誰在做、在哪裡做：</p>
+        <table class="glossary-table">
+            <thead>
+                <tr><th>轉換</th><th>矩陣在哪算</th><th>頂點轉換在哪做</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Object→World（Model）</td><td>CPU（Application）</td><td>Vertex Shader</td></tr>
+                <tr><td>World→Camera（View）</td><td>CPU（Application）</td><td>Vertex Shader</td></tr>
+                <tr><td>Camera→Clip（Projection）</td><td>CPU（Application）</td><td>Vertex Shader</td></tr>
+                <tr><td>Clip→NDC（÷w 透視除法）</td><td>—</td><td>GPU 固定功能（光柵化前）</td></tr>
+                <tr><td>NDC→Screen（Viewport）</td><td>—</td><td>GPU 固定功能（Rasterization）</td></tr>
+            </tbody>
+        </table>
+        <div class="callout">
+            一句話：三個矩陣都在 <strong>CPU（Application 階段）每幀算好、當 uniform 丟給 GPU</strong>；
+            真正把頂點乘上去的三個轉換，全在 <strong>Vertex Shader</strong> 裡跑；最後兩步（÷w、對應到螢幕像素）是 GPU 自動完成。
+        </div>
+        <p style="font-size:0.9rem;color:var(--color-muted)">
+            實作上 Model×View×Projection 常先乘成一個 <code>MVP</code> 矩陣，World、Camera 這兩個中間座標不一定被單獨算出來 —— 概念上分五步，程式裡常一次乘完。
+        </p>
+    </section>
+
+    <section>
+        <h2>跟著一顆頂點走一遍</h2>
+        <p>
+            拿上一課房子五邊形的<strong>屋頂尖 v1</strong> 來走一趟。設定：房子擺在世界 (5, 0, 3)，鏡頭在 (5, 1, 8) 往 −Z 方向看，畫面解析度 1280×720。
+        </p>
+        <table class="glossary-table">
+            <thead>
+                <tr><th>空間</th><th>v1 的座標（示意）</th><th>發生了什麼</th></tr>
+            </thead>
+            <tbody>
+                <tr><td class="term">Object</td><td><code>(0, 1, 0)</code></td><td>建模時：屋頂尖在模型原點上方 1</td></tr>
+                <tr><td class="term">World</td><td><code>(5, 1, 3)</code></td><td>Model：整棟房子被擺到 (5, 0, 3)</td></tr>
+                <tr><td class="term">Camera</td><td><code>(0, 0, -5)</code></td><td>View：從鏡頭看，就在正前方 5 單位</td></tr>
+                <tr><td class="term">Clip</td><td><code>(0, 0, 0.9)</code> 附近</td><td>Projection：壓進 [-1,1]（z 越遠越靠近 1）</td></tr>
+                <tr><td class="term">Screen</td><td><code>(640, 360)</code> 附近</td><td>Viewport：落在 1280×720 畫面的正中央</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size:0.9rem;color:var(--color-muted)">
+            數字是示意（Clip / Screen 取概略值），重點只有一個：<strong>頂點沒有變，變的是「用誰的角度描述它」</strong>。
+        </p>
+    </section>
+
+    <section>
         <h2>換系靠矩陣 —— 但別緊張</h2>
         <p>
             每一支箭頭（換一次參照系）= 頂點乘上一個 4×4 矩陣。你在 Vertex Shader（下一課）會看到這一行：
         </p>
         <pre><code>gl_Position = projectionMatrix * modelViewMatrix * position;</code></pre>
         <p>那就是這整條路：把頂點從 Object 一路算到 Clip Space。</p>
+        <p style="font-size:0.9rem;color:var(--color-muted)">
+            （順帶一提：程式碼裡常看到 <code>vec4(position, 1.0)</code>、位置變 4 個數字 —— 多出來的 1 是讓矩陣能做「平移」的小技巧（齊次座標），下一課會再遇到；想深究見 <a href="../../遊戲數學_02_線性代數_座標空間.md">遊戲數學_02</a>。）
+        </p>
         <div class="callout">
             👉 看到矩陣別緊張。<strong>這課只要你記得「換了幾次、順序是什麼」</strong>。
             矩陣長怎樣、怎麼推導，是<em>可選</em>的深入內容 —— 想鑽再看
@@ -69,9 +172,26 @@
     </section>
 
     <section>
-        <h2>排排看</h2>
+        <h2>小心：不同 API 的慣例不一樣</h2>
+        <figure>
+            <img src="../../images/lefthand_righthand.png" alt="左手座標系與右手座標系">
+            <figcaption>左手 vs 右手座標系：X 向右、Y 向上時，Z 的方向相反。</figcaption>
+        </figure>
+        <p>
+            座標系有「慣用手」之分：X 向右、Y 向上之下，Z 朝哪邊是兩派 ——
+            <span class="term">右手座標系</span>（OpenGL、Cocos Creator）Z 朝向你；
+            <span class="term">左手座標系</span>（DirectX、Unity）Z 朝裡。
+        </p>
+        <div class="callout">
+            症狀對照：模型匯入後<strong>整個鏡像、或前後顛倒</strong>，最常見的原因就是來源工具和引擎的慣用手不同。
+            另一個同類差異：Clip 的 z 範圍 OpenGL 是 [-1,1]，DirectX / Vulkan / Metal 是 [0,1]。
+        </div>
+    </section>
+
+    <section>
+        <h2>隨堂測驗</h2>
         <div class="quiz" id="order-quiz">
-            <p class="quiz-prompt">依 3D→2D 的順序，依序點選 5 個空間：</p>
+            <p class="quiz-prompt">1. 依 3D→2D 的順序，依序點選 5 個空間：</p>
             <div class="chip-pool" id="order-pool">
                 <button class="chip" data-value="world">World Space</button>
                 <button class="chip" data-value="clip">Clip Space</button>
@@ -88,12 +208,65 @@
             <p class="quiz-feedback" id="order-feedback"></p>
         </div>
         <div class="quiz">
-            <p class="quiz-prompt">投影後那個 [-1,1] 的標準盒子，叫哪個空間？</p>
-            <div class="chip-pool" data-answer="Clip Space" data-ok="對了！Clip Space —— 超出這個盒子的東西會被裁掉。" data-no="再想一下：投影後、用來決定「看不看得到」的標準盒子。">
+            <p class="quiz-prompt">2. 下面兩張是同一排柱子的算圖結果。哪一張是<strong>透視投影</strong>（近大遠小）？</p>
+            <div class="two-col">
+                <figure>
+                    <svg viewBox="0 0 180 110" width="100%" role="img" aria-label="甲：一排柱子往遠處縮小">
+                        <line x1="8" y1="95" x2="172" y2="95" stroke="var(--color-border)" stroke-width="1"></line>
+                        <rect x="18" y="33" width="20" height="62" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                        <rect x="58" y="48" width="15" height="47" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                        <rect x="92" y="60" width="11" height="35" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                        <rect x="118" y="69" width="8" height="26" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                    </svg>
+                    <figcaption>甲</figcaption>
+                </figure>
+                <figure>
+                    <svg viewBox="0 0 180 110" width="100%" role="img" aria-label="乙：一排柱子大小相同">
+                        <line x1="8" y1="95" x2="172" y2="95" stroke="var(--color-border)" stroke-width="1"></line>
+                        <rect x="20" y="45" width="18" height="50" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                        <rect x="57" y="45" width="18" height="50" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                        <rect x="94" y="45" width="18" height="50" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                        <rect x="131" y="45" width="18" height="50" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                    </svg>
+                    <figcaption>乙</figcaption>
+                </figure>
+            </div>
+            <div class="chip-pool" data-answer="甲" data-ok="對了！近大遠小 = 透視。乙每根柱子一樣大，是正交投影。" data-no="再看一次：透視會讓遠的東西變小。哪一張的柱子往遠處縮小了？">
+                <button class="chip">甲</button>
+                <button class="chip">乙</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">3. 關於這 5 個空間的轉換，下面哪個說法正確？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="Model / View / Projection 矩陣都在 CPU 算好，頂點的轉換在 Vertex Shader（GPU）做" data-ok="對了！矩陣在 CPU 算好丟 uniform，逐頂點的轉換在 Vertex Shader 跑。" data-no="回上面「誰做？在哪階段」那張表：矩陣在哪算、轉換在哪做？">
+                <button class="chip">Model / View / Projection 矩陣都在 CPU 算好，頂點的轉換在 Vertex Shader（GPU）做</button>
+                <button class="chip">三個矩陣都是 GPU 幫每個頂點各自算出來的</button>
+                <button class="chip">投影（Projection）是在 CPU 上對每個頂點做的</button>
+                <button class="chip">NDC 對應到螢幕像素是由 CPU 負責</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">4. Shader 裡 <code>modelViewMatrix * position</code> 算完（還沒乘 projection），這個頂點在哪個空間？</p>
+            <div class="chip-pool" data-answer="Camera Space" data-ok="對了！modelView = Model×View，把頂點帶到 Camera Space；再乘 projection 才到 Clip。" data-no="modelView 做了 Object→World→Camera 兩步，停在哪個空間？">
                 <button class="chip">World Space</button>
                 <button class="chip">Camera Space</button>
                 <button class="chip">Clip Space</button>
                 <button class="chip">Screen Space</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">5. 模型匯入引擎後整個「鏡像」或前後顛倒，最可能的原因是？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="來源工具和引擎的左右手座標系慣例不同" data-ok="對了！右手（OpenGL/Cocos）vs 左手（DirectX/Unity），Z 方向相反。" data-no="這是座標系「慣用手」的經典症狀，跟 UV / 繞序 / 貼圖大小無關。">
+                <button class="chip">來源工具和引擎的左右手座標系慣例不同</button>
+                <button class="chip">UV 座標算錯了</button>
+                <button class="chip">索引的繞序（winding）反了</button>
+                <button class="chip">貼圖解析度太大</button>
             </div>
             <p class="quiz-feedback"></p>
         </div>

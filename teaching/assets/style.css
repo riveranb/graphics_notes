@@ -230,6 +230,27 @@ figcaption {
     resize: vertical;
 }
 
+/* two figures side by side (stacks on narrow screens) */
+
+.two-col {
+    display: flex;
+    gap: 1em;
+    flex-wrap: wrap;
+    margin: 1.4em 0;
+}
+
+.two-col figure {
+    flex: 1 1 200px;
+    min-width: 0;
+    margin: 0;
+}
+
+.two-col svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
 .quiz-actions {
     margin-top: 0.8em;
     display: flex;

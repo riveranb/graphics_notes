@@ -13,7 +13,7 @@
 </nav>
 <main>
     <header class="lesson-header">
-        <p class="lesson-meta">Lesson 0005 · 約 8 分鐘 · 無數學</p>
+        <p class="lesson-meta">Lesson 0005 · 約 12 分鐘 · 有一題小計算</p>
         <h1>Rasterization：三角形變成一格格像素</h1>
     </header>
 
@@ -29,8 +29,9 @@
         <strong>這堂課結束後，你會：</strong>
         <ul>
             <li>知道光柵化 = 把三角形「填」成一格格<strong>片段</strong>（fragment ≈ 像素）</li>
-            <li>知道每個片段的資料（顏色、UV…）是從 3 個頂點<strong>內插</strong>來的</li>
-            <li>知道這附近會把看不到的東西丟掉：Culling 與 Clipping</li>
+            <li>會<strong>算</strong>一個片段的內插值（就是加權平均，不難）</li>
+            <li>知道 Cull / Clip 分別由<strong>誰做、在哪個階段</strong>把看不到的東西丟掉</li>
+            <li>看懂 Clipping 怎麼把「跨出邊界」的三角形<strong>切開重組</strong></li>
         </ul>
     </section>
 
@@ -54,40 +55,124 @@
             <figcaption>三角形內部每個像素的值，是從 3 個頂點「線性內插」算出來的。</figcaption>
         </figure>
         <p>
-            輸入只有 3 個頂點，但中間有成千上萬個像素。GPU 用<span class="term">內插</span>（Linear Interpolation）：
-            越靠近哪個頂點，就越像那個頂點的值。所以第 4 課 Vertex Shader 用 <code>varying</code> 傳出的 UV、法線，
+            輸入只有 3 個頂點，但中間有成千上萬個像素。GPU 用<span class="term">內插</span>（Interpolation）補出中間值：
+            <strong>越靠近哪個頂點，就越像那個頂點的值</strong>。所以第 4 課 Vertex Shader 用 <code>varying</code> 傳出的 UV、顏色、法線，
             到了這裡會被內插，變成每個片段各自的值 —— 下一課 Fragment Shader 就吃這些。
+        </p>
+
+        <h3>用數字看一次（沿一條邊）</h3>
+        <p>拿一條邊上的兩個頂點，一個是紅、一個是綠，中間的片段就是兩端「按比例混」出來的：</p>
+        <pre><code>頂點 A = 紅 (1, 0, 0)      頂點 B = 綠 (0, 1, 0)
+
+正中間的片段       → 各一半     = (0.5, 0.5, 0)   偏黃
+靠 A 那端 1/4 處   → 紅佔 3/4   = (0.75, 0.25, 0) 偏紅</code></pre>
+        <p>寫成一行公式（不嚇人，就是加權平均）：</p>
+        <pre><code>片段值 = A × (1 − t) + B × t      // t = 從 A 走到 B 的比例（0～1）</code></pre>
+        <p>
+            <code>t = 0</code> 就完全是 A、<code>t = 1</code> 就完全是 B、<code>t = 0.5</code> 剛好一半一半。
+            這條 <code>A×(1−t) + B×t</code> 是圖學裡到處都是的「lerp（線性內插）」。
         </p>
     </section>
 
     <section>
         <h2>順手丟掉看不到的：Culling &amp; Clipping</h2>
-        <ul>
-            <li><span class="term">Frustum Culling</span> — 相機視野外的整個物件，早在 CPU 端就丟掉，不送 GPU。</li>
-            <li><span class="term">Back Face Culling</span> — 背對相機的三角形面丟掉（不透明物體背面看不到）。</li>
-            <li><span class="term">Clipping</span> — 跨出視野邊界的三角形，GPU 自動切掉超出的部分。</li>
-        </ul>
+        <p>
+            在真正填成片段之前（甚至更早），管線會把「反正看不到」的東西先丟掉，省得白算。
+            這裡有三個技術，分別由<strong>不同的人、在不同階段</strong>動手：
+        </p>
+        <figure>
+            <div class="pipeline-strip">
+                <span class="stage">Application<small>CPU · Frustum Culling</small></span>
+                <span class="stage">Vertex Shader<small>GPU · 算頂點</small></span>
+                <span class="stage">Cull + Clip<small>GPU · 丟掉看不到的</small></span>
+                <span class="stage is-current">Rasterization<small>GPU · 填成片段</small></span>
+                <span class="stage">Fragment Shader<small>GPU · 上色</small></span>
+            </div>
+            <figcaption>把最上面那條放大：頂點算完後、真正填成片段之前，GPU 先做一輪 Cull + Clip，把看不到的丟掉才進 Rasterization。</figcaption>
+        </figure>
+
+        <table class="glossary-table">
+            <thead><tr><th>技術</th><th>誰做</th><th>哪個階段</th><th>丟掉什麼</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td class="term">Frustum Culling</td>
+                    <td>CPU</td>
+                    <td>Application（進 GPU 前）</td>
+                    <td>視野外的<strong>整個物件</strong>，根本不送 GPU</td>
+                </tr>
+                <tr>
+                    <td class="term">Back Face Culling</td>
+                    <td>GPU 硬體</td>
+                    <td>進 Rasterization 前</td>
+                    <td>背對相機的三角形面（用<strong>繞序</strong>判斷正/背面）</td>
+                </tr>
+                <tr>
+                    <td class="term">Clipping</td>
+                    <td>GPU 硬體</td>
+                    <td>進 Rasterization 前</td>
+                    <td>跨出視野邊界的部分（<strong>切開重組</strong>）</td>
+                </tr>
+            </tbody>
+        </table>
         <div class="callout">
-            一句話記住：這些都是<strong>「不畫看不到的東西」</strong>來省效能。若物件<strong>整個消失</strong>，很常是被 culling / clipping 或面向（winding order）搞掉了。
+            一句效能直覺：<strong>丟得越早，省得越多</strong>。Frustum Culling 在 CPU 就把整個物件丟了，GPU 完全不用碰它——這就是為什麼要分階段做，而不是全部塞到最後。
+        </div>
+    </section>
+
+    <section>
+        <h2>Clipping：把跨出邊界的三角形切開</h2>
+        <p>
+            一個三角形常常不是「整個看得到」或「整個看不到」，而是<strong>一半在畫面內、一半在外</strong>。
+            這時 GPU 不能整個丟（內側那半還要畫），也不能整個留（外側超出範圍），
+            做法是<strong>在邊界切一刀</strong>：外面切掉丟棄，裡面剩下的形狀重新組成新的三角形，再送進 Rasterization。
+        </p>
+        <figure>
+            <img src="../../images/clipping_guardband.jpg" alt="三角形被視野邊界裁剪、重新三角化">
+            <figcaption>
+                A：完全在框內 → 整個留。B：完全在框外 → 整個丟。
+                E：跨在邊界上 → 切開，框內剩下的部分被重新三角化（虛線就是新拆出來的三角形）。
+            </figcaption>
+        </figure>
+        <div class="callout">
+            所以物件<strong>整個消失</strong>時，很常是被 Culling / Clipping 或<strong>繞序（winding order）</strong>搞掉的——不是 shader 寫錯，是這一關把它丟了。
         </div>
     </section>
 
     <section>
         <h2>快速確認</h2>
+
         <div class="quiz">
-            <p class="quiz-prompt">三角形內部每個像素的顏色/UV，是怎麼來的？</p>
-            <div class="chip-pool" data-answer="從 3 個頂點內插" data-ok="對了！線性內插 —— 越靠近某個頂點就越像它。" data-no="想一下：輸入只有 3 個頂點，中間的像素值怎麼補出來？">
-                <button class="chip">從 3 個頂點內插</button>
-                <button class="chip">每個像素隨機給</button>
-                <button class="chip">複製第一個頂點</button>
+            <p class="quiz-prompt">Q1　一條邊上，Vertex A 的 <code>UV.u = 0.2</code>、Vertex B 的 <code>UV.u = 1.0</code>。<br>
+                從 A 往 B 走到 <strong>3/4</strong> 的片段，內插出的 <code>u</code> = ?<br>
+                <small>（提示：<code>u = A×(1−t) + B×t</code>，t = 3/4）</small></p>
+            <input type="text" class="quiz-input" id="interp-input" autocomplete="off" placeholder="填一個數字">
+            <div class="quiz-actions"><button class="btn" id="interp-check">檢查</button></div>
+            <p class="quiz-feedback" id="interp-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">Q2　下面三句，哪一句是<strong>錯的</strong>？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="Clipping 發生在 Rasterization 之後"
+                 data-ok="對了！順序反了——先 Clipping 切好、再送去 Rasterization 填片段。"
+                 data-no="再對照那張表想一下：這三件事各自在哪個階段做？">
+                <button class="chip">Frustum Culling 由 CPU 在送進 GPU 前就先剔除整個物件</button>
+                <button class="chip">Back Face Culling 靠 winding order 判斷三角形是正面還是背面</button>
+                <button class="chip">Clipping 發生在 Rasterization 之後</button>
             </div>
             <p class="quiz-feedback"></p>
         </div>
+
         <div class="quiz">
-            <p class="quiz-prompt">把三角形變成一堆片段的階段，叫什麼？（中文或英文）</p>
-            <input type="text" class="quiz-input" id="recall-input" autocomplete="off" placeholder="一個詞">
-            <div class="quiz-actions"><button class="btn" id="check-recall">檢查</button></div>
-            <p class="quiz-feedback" id="recall-feedback"></p>
+            <p class="quiz-prompt">Q3　一個新模型丟進場景，發現它的<strong>正面完全看不到、背面反而看得到</strong>。最可能是什麼？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="頂點繞序跟 culling 認定的正面方向兜反了"
+                 data-ok="對了！Back Face Culling 照繞序決定誰是正面，繞序反了就把該顯示的正面當成背面剔除。開了 GL_CULL_FACE 卻破面，第一個查這裡。"
+                 data-no="關鍵：正常的背面剔除是『背面看不到』；現在剛好相反（正面不見、背面在），代表正反被弄反了。">
+                <button class="chip">頂點繞序跟 culling 認定的正面方向兜反了</button>
+                <button class="chip">這是正常的 Back Face Culling，本來就會這樣</button>
+                <button class="chip">貼圖沒設定好</button>
+                <button class="chip">gl_Position 沒有輸出</button>
+            </div>
+            <p class="quiz-feedback"></p>
         </div>
     </section>
 
@@ -111,16 +196,17 @@
 
 <script>
 (function () {
-    var accepted = ['rasterization', '光柵化', 'raster'];
-    var input = document.getElementById('recall-input');
-    var fb = document.getElementById('recall-feedback');
+    var input = document.getElementById('interp-input');
+    var fb = document.getElementById('interp-feedback');
     function check() {
-        var v = input.value.trim().toLowerCase();
-        var ok = accepted.indexOf(v) !== -1;
-        fb.textContent = ok ? '對了！Rasterization（光柵化）。' : '提示：三角形 →「一格格」的那個動作。';
+        var v = parseFloat(input.value.trim());
+        var ok = !isNaN(v) && Math.abs(v - 0.8) < 0.001;
+        fb.textContent = ok
+            ? '對了！0.2×(1/4) + 1.0×(3/4) = 0.05 + 0.75 = 0.8。走到越靠近 B，就越接近 B 的值。'
+            : '再算一次：u = 0.2×(1−3/4) + 1.0×(3/4)。';
         fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
     }
-    document.getElementById('check-recall').addEventListener('click', check);
+    document.getElementById('interp-check').addEventListener('click', check);
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { check(); } });
 })();
 document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {

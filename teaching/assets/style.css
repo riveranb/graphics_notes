@@ -143,6 +143,11 @@ figure img {
     border-radius: 4px;
 }
 
+figure svg {
+    max-width: 100%;
+    height: auto;
+}
+
 figcaption {
     font-size: 0.85rem;
     color: var(--color-muted);

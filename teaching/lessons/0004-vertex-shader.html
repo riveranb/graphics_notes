@@ -13,7 +13,7 @@
 </nav>
 <main>
     <header class="lesson-header">
-        <p class="lesson-meta">Lesson 0004 · 約 9 分鐘 · 有一小段程式碼</p>
+        <p class="lesson-meta">Lesson 0004 · 約 14 分鐘 · 有程式碼，可動手</p>
         <h1>Vertex Shader：你會改的第一種程式碼</h1>
     </header>
 
@@ -28,20 +28,35 @@
     <section class="callout callout--win">
         <strong>這堂課結束後，你會：</strong>
         <ul>
-            <li>知道 Vertex Shader = 每個<strong>頂點</strong>跑一次的小程式</li>
-            <li>知道它最重要的工作：算出 <code>gl_Position</code>（頂點在 Clip Space 的位置）</li>
-            <li>看得懂一支最簡單的 vertex shader 每一行在幹嘛</li>
+            <li>知道 Vertex Shader 在管線的<strong>哪個位置、負責什麼</strong></li>
+            <li>看懂一支 shader 的<strong>資料流</strong>：input 從哪來、output 往哪去</li>
+            <li>分得清 <code>attribute</code> / <code>uniform</code> / <code>varying</code> 各自怎麼運作</li>
+            <li>讀得懂 GLSL 常見<strong>型別與 swizzling</strong>（<code>.xyz</code> / <code>.rgba</code>）</li>
+            <li>能自己<strong>動手改</strong>一行，讓表面做出 sin wave 波動</li>
         </ul>
     </section>
 
     <section>
+        <h2>它在管線的哪、負責什麼</h2>
+        <p>
+            回到管線那條帶子：<span class="term">Vertex Shader</span> 是<strong>第一個「可程式化」階段</strong>——
+            前面的 Application 在 CPU 準備好資料，接著 GPU 就開始跑你寫的 vertex shader。
+        </p>
+        <p>它的處理單位是<strong>頂點</strong>：Mesh 有幾個頂點，這支程式就跑幾次，每次處理一個。它唯一的硬性任務只有一件事：</p>
+        <div class="callout">
+            算出這個頂點<strong>最後落在畫面的哪裡</strong>——也就是輸出 <code>gl_Position</code>（頂點在 <span class="term">Clip Space</span> 的位置）。
+            這正是第 3 課那條「Object → World → Camera → Clip」的轉換，真正發生的地方。
+        </div>
+    </section>
+
+    <section>
         <h2>先看它長怎樣</h2>
-        <p>這就是一支最基本的 Vertex Shader（GLSL）。別怕，我們一行行拆：</p>
-        <pre><code>attribute vec3 position;          // 頂點位置（來自 Mesh）
-attribute vec2 texCoord;          // 頂點 UV
-uniform   mat4 modelViewMatrix;   // 全域：Object→Camera 的矩陣
-uniform   mat4 projectionMatrix;  // 全域：投影矩陣
-varying   vec2 vTexCoord;         // 要傳給 Fragment Shader 的資料
+        <p>這是一支最基本的 Vertex Shader（GLSL）。別怕，等一下一行行拆：</p>
+        <pre><code>attribute vec3 position;          // 輸入：這個頂點的位置（來自 Mesh）
+attribute vec2 texCoord;          // 輸入：這個頂點的 UV
+uniform   mat4 modelViewMatrix;   // 輸入：全域，Object→Camera 的矩陣
+uniform   mat4 projectionMatrix;  // 輸入：全域，投影矩陣
+varying   vec2 vTexCoord;         // 輸出：要傳給 Fragment Shader 的資料
 
 void main() {
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
@@ -50,44 +65,206 @@ void main() {
     </section>
 
     <section>
-        <h2>三種變數，看關鍵字就懂</h2>
+        <h2>資料流：input 進來，output 出去</h2>
+        <p>整支 shader 就是一台「加工機」：左邊餵資料進來，中間 <code>main()</code> 加工，右邊吐結果出去。</p>
+        <figure>
+            <svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" role="img"
+                 aria-label="Vertex Shader 資料流：左邊 attribute 與 uniform 輸入，中間 main 加工，右邊輸出 gl_Position 與 varying">
+                <!-- inputs -->
+                <rect x="8" y="30" width="180" height="52" rx="6" fill="var(--color-accent-bg)" stroke="var(--color-accent)"/>
+                <text x="98" y="52" text-anchor="middle" font-size="13" font-weight="700" fill="var(--color-accent)">attribute</text>
+                <text x="98" y="70" text-anchor="middle" font-size="11" fill="var(--color-muted)">每個頂點各自不同</text>
+
+                <rect x="8" y="120" width="180" height="52" rx="6" fill="var(--color-accent-bg)" stroke="var(--color-accent)"/>
+                <text x="98" y="142" text-anchor="middle" font-size="13" font-weight="700" fill="var(--color-accent)">uniform</text>
+                <text x="98" y="160" text-anchor="middle" font-size="11" fill="var(--color-muted)">整批頂點共用</text>
+
+                <!-- arrows in -->
+                <line x1="188" y1="56" x2="258" y2="90" stroke="var(--color-muted)" stroke-width="1.5" marker-end="url(#ah)"/>
+                <line x1="188" y1="146" x2="258" y2="112" stroke="var(--color-muted)" stroke-width="1.5" marker-end="url(#ah)"/>
+
+                <!-- main -->
+                <rect x="260" y="66" width="160" height="70" rx="6" fill="#fff" stroke="var(--color-text)"/>
+                <text x="340" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="var(--color-text)">main()</text>
+                <text x="340" y="116" text-anchor="middle" font-size="11" fill="var(--color-muted)">每個頂點跑一次</text>
+
+                <!-- arrows out -->
+                <line x1="420" y1="90" x2="500" y2="56" stroke="var(--color-muted)" stroke-width="1.5" marker-end="url(#ah)"/>
+                <line x1="420" y1="112" x2="500" y2="146" stroke="var(--color-muted)" stroke-width="1.5" marker-end="url(#ah)"/>
+
+                <!-- outputs -->
+                <rect x="500" y="26" width="192" height="56" rx="6" fill="var(--color-accent-bg)" stroke="var(--color-accent)"/>
+                <text x="596" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="var(--color-accent)">gl_Position</text>
+                <text x="596" y="66" text-anchor="middle" font-size="11" fill="var(--color-muted)">必給 · Clip Space 位置</text>
+
+                <rect x="500" y="120" width="192" height="56" rx="6" fill="#fff" stroke="var(--color-border)"/>
+                <text x="596" y="142" text-anchor="middle" font-size="13" font-weight="700" fill="var(--color-text)">varying</text>
+                <text x="596" y="160" text-anchor="middle" font-size="11" fill="var(--color-muted)">選給 → 內插 → Fragment</text>
+
+                <defs>
+                    <marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="var(--color-muted)"/>
+                    </marker>
+                </defs>
+            </svg>
+            <figcaption>Vertex Shader 的資料流：兩種輸入 → main() → 一定要給的 gl_Position ＋選給的 varying。</figcaption>
+        </figure>
+    </section>
+
+    <section>
+        <h2>三個修飾字，看關鍵字就懂</h2>
+        <p>那些寫在型別前面的字（<code>attribute</code> / <code>uniform</code> / <code>varying</code>）不是裝飾，它們指定了這個資料「從哪來、往哪去」：</p>
         <ul>
-            <li><span class="term">attribute</span> — <strong>輸入</strong>：這個頂點自己的資料（位置、UV、法線…就是第 2 課的頂點屬性）</li>
-            <li><span class="term">uniform</span> — <strong>輸入</strong>：整批頂點共用的全域值（例如那兩個矩陣）</li>
-            <li><span class="term">varying</span> — <strong>輸出</strong>：算好後傳給 Fragment Shader 的資料</li>
+            <li>
+                <span class="term">attribute</span> — <strong>逐頂點輸入</strong>。
+                每跑一次換一個頂點的值（位置、UV、法線……就是第 2 課的頂點屬性）。
+            </li>
+            <li>
+                <span class="term">uniform</span> — <strong>全域輸入</strong>。
+                整個 draw call 裡所有頂點看到的都一樣，由 CPU 端<strong>設定一次</strong>（那兩個矩陣、時間、光源方向都是）。
+            </li>
+            <li>
+                <span class="term">varying</span> — <strong>輸出</strong>。
+                你算好、要交給 Fragment Shader 的資料。關鍵一點：它<strong>不是直接送達</strong>——
+                會先在下一階段（Rasterization）被<strong>內插</strong>，三角形內每個像素拿到的是「按位置混合過」的值。這一段第 5 課會細講。
+            </li>
         </ul>
-        <p>
-            還有一個一定要輸出的內建變數 <code>gl_Position</code> —— 頂點在 <span class="term">Clip Space</span> 的位置。
-            那一行矩陣乘法，正是第 3 課說的「把頂點從 Object 一路換到 Clip Space」。
-        </p>
         <div class="callout">
-            重點只有一句：<strong>Vertex Shader 決定「每個頂點最後落在畫面哪裡」</strong>。模型位置、相機、投影不對，通常來這裡找。
+            一句話記住三者：<strong>attribute 每個頂點不同、uniform 大家一樣、varying 往下傳（會被內插）</strong>。
         </div>
     </section>
 
     <section>
-        <h2>它會跑很多次</h2>
+        <h2>GLSL 常見型別（讀 shader 的識字）</h2>
+        <table class="glossary-table">
+            <thead><tr><th>型別</th><th>是什麼</th></tr></thead>
+            <tbody>
+                <tr><td class="term">float</td><td>一個小數。</td></tr>
+                <tr><td class="term">vec2 / vec3 / vec4</td><td>2 / 3 / 4 個 float 打包在一起。位置、顏色、UV 都是這種。</td></tr>
+                <tr><td class="term">mat4</td><td>4×4 矩陣，就是那些變換矩陣。</td></tr>
+                <tr><td class="term">sampler2D</td><td>一張貼圖（第 6、7 課會用到）。</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>Swizzling：拆分量、重新組</h2>
+        <p>一個 <code>vec4</code> 裡的分量，可以用兩套名字叫——<strong>同一塊資料，只是別名</strong>：</p>
+        <ul>
+            <li><code>.x .y .z .w</code> — 當<strong>座標</strong>看時用</li>
+            <li><code>.r .g .b .a</code> — 當<strong>顏色</strong>看時用</li>
+        </ul>
+        <p>而且可以任意挑、重排、甚至重複同一個分量，這動作叫 <span class="term">swizzling</span>：</p>
+        <pre><code>vec4 c = vec4(0.1, 0.2, 0.3, 1.0);
+
+c.xy       // → vec2(0.1, 0.2)      取前兩個
+c.rgb      // → vec3(0.1, 0.2, 0.3) 只取顏色三分量
+c.bgr      // → vec3(0.3, 0.2, 0.1) 調換順序
+c.xxx      // → vec3(0.1, 0.1, 0.1) 重複同一個（灰階填滿 RGB 常這樣）
+
+vec4(position.xyz, 1.0)   // 取 xyz 再補一個 w=1.0 —— 每支 shader 都看得到</code></pre>
+    </section>
+
+    <section>
+        <h2>那行矩陣乘法：順序不能反</h2>
+        <p>再看核心那一行：</p>
+        <pre><code>gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);</code></pre>
         <p>
-            模型有幾個頂點，這支程式就跑幾次（而且是 GPU 大量<strong>平行</strong>同時算）。
-            所以 vertex shader 要簡單快 —— 每個頂點都要付一次成本。
+            矩陣乘法<strong>從右往左</strong>作用：先 <code>modelViewMatrix</code> 把頂點帶到 Camera Space，再 <code>projectionMatrix</code> 投影到 Clip Space。
+            矩陣乘法<strong>不能交換</strong>——順序一調，頂點就被算到錯的地方，畫面整個壞掉。這也是「東西沒出現、位置歪掉」時第一個要檢查的地方。
         </p>
+    </section>
+
+    <section>
+        <h2>動手改一行：讓表面做出 sin wave</h2>
+        <p>
+            Vertex Shader 既然決定每個頂點的位置，那我們就能<strong>在送去投影之前，先動它的座標</strong>。
+            這就是水面、旗子飄動這類效果的做法——一支 shader，改幾行而已：
+        </p>
+        <pre><code>uniform float uTime;                    // 一直變大的時間（CPU 每幀傳進來）
+
+void main() {
+    vec3 pos = position;
+    pos.y += sin(pos.x + uTime);        // 依 x 起伏、隨時間前進 → 波
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+}</code></pre>
+        <p>波動要成立，這一行需要三個零件同時到位：<code>sin()</code>（才有波形）、<code>pos.x</code>（波形隨空間變化）、<code>uTime</code>（波才會往前跑）。缺一個就不是「會動的波」。</p>
+        <div class="callout callout--cocos">
+            <strong>對應到 Cocos：</strong>上面用 <code>uniform float uTime</code> 是通用寫法（你得自己宣告、自己每幀傳）。
+            在 Cocos Creator 你<strong>不用自己宣告</strong>——引擎內建全域 uniform <code>cc_time</code>（<code>vec4</code>），
+            直接用 <code>cc_time.x</code> 就是「啟動至今的秒數」。所以在 Cocos 裡那行會寫成
+            <code>pos.y += sin(pos.x + cc_time.x);</code>。
+        </div>
+    </section>
+
+    <section>
+        <h2>它跑很多次，而且很平行</h2>
+        <p>
+            模型有幾個頂點，這支程式就跑幾次，而且 GPU 是<strong>大量同時平行</strong>算。
+            所以 vertex shader 要簡單快——每個頂點都要付一次成本。
+        </p>
+    </section>
+
+    <section>
+        <h2>它做不到什麼</h2>
+        <p>劃清邊界，免得誤會它萬能：</p>
+        <ul>
+            <li><strong>不能決定最終顏色</strong>——那是 Fragment Shader 的工作（第 6 課）。</li>
+            <li><strong>不能增減頂點數量</strong>——它只能<em>搬動</em>既有頂點，不能無中生有或刪掉（那要別的 shader）。</li>
+        </ul>
     </section>
 
     <section>
         <h2>快速確認</h2>
+
         <div class="quiz">
-            <p class="quiz-prompt">上面那支 shader，哪一行決定「頂點最後在畫面的位置」？</p>
-            <div class="chip-pool" data-answer="gl_Position = ... * position" data-ok="對了！輸出 gl_Position 就是頂點的最終（Clip Space）位置。" data-no="再看一下：哪一行寫進了 gl_Position？">
-                <button class="chip">gl_Position = ... * position</button>
-                <button class="chip">vTexCoord = texCoord</button>
+            <p class="quiz-prompt">Q1　相機矩陣這種「整批頂點共用、由 CPU 每幀設定一次」的值，在 shader 裡該宣告成哪一種？</p>
+            <div class="chip-pool" data-answer="uniform"
+                 data-ok="對了！全域共用、CPU 設定 → uniform。"
+                 data-no="再想一下：這個值所有頂點都一樣，不是每個頂點各自帶的，也不是要往下傳的輸出。">
+                <button class="chip">uniform</button>
+                <button class="chip">attribute</button>
+                <button class="chip">varying</button>
             </div>
             <p class="quiz-feedback"></p>
         </div>
+
         <div class="quiz">
-            <p class="quiz-prompt">Vertex Shader 一定要輸出哪個內建變數？（英文，一個詞）</p>
-            <input type="text" class="quiz-input" id="recall-input" autocomplete="off" placeholder="gl_...">
-            <div class="quiz-actions"><button class="btn" id="check-recall">檢查</button></div>
-            <p class="quiz-feedback" id="recall-feedback"></p>
+            <p class="quiz-prompt">Q2　<code>gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);</code><br>
+                如果把 <code>projectionMatrix</code> 和 <code>modelViewMatrix</code> 對調位置，會怎樣？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="畫面會壞掉：矩陣乘法不能交換，順序反了頂點就被算到錯位置"
+                 data-ok="對了！矩陣乘法不可交換，順序是有意義的。"
+                 data-no="矩陣乘法和數字乘法不一樣——A×B 不等於 B×A。">
+                <button class="chip">畫面會壞掉：矩陣乘法不能交換，順序反了頂點就被算到錯位置</button>
+                <button class="chip">沒差，乘法可以交換，結果一樣</button>
+                <button class="chip">只有顏色會變，位置不受影響</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">Q3　要讓表面像水波（越往右波峰越晚、且會隨時間往前跑），<code>pos.y += ____;</code> 該填哪個？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="sin(pos.x + cc_time.x)"
+                 data-ok="對了！sin 給波形、pos.x 讓波隨空間變化、cc_time.x 讓波前進，三個零件缺一不可。這正是你之後改真實 water／flag shader 會動到的地方。"
+                 data-no="想想三個零件：要有 sin（波形）、要有 pos.x（隨空間變化）、要有 cc_time.x（會前進）。少哪個？">
+                <button class="chip">sin(pos.x + cc_time.x)</button>
+                <button class="chip">sin(cc_time.x)　→ 缺 pos.x：整片一起上下抖，沒有波形</button>
+                <button class="chip">sin(pos.x)　→ 缺時間：有波形但凍住不動</button>
+                <button class="chip">pos.x + cc_time.x　→ 缺 sin：根本不是波，整片斜上去</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">Q4　<code>vec4 c = vec4(0.1, 0.2, 0.3, 1.0);</code> 關於 <code>c.rgba</code> 和 <code>c.xyzw</code>，哪句正確？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="兩者指到同一塊資料，只是一套名字當顏色、一套當座標"
+                 data-ok="對了！rgba 和 xyzw 只是同一個 vec4 的兩套別名，資料是同一份。"
+                 data-no="它們不是兩份不同的資料——swizzling 只是換個名字取同一塊。">
+                <button class="chip">兩者指到同一塊資料，只是一套名字當顏色、一套當座標</button>
+                <button class="chip">rgba 存顏色、xyzw 存座標，是各自獨立的兩份資料</button>
+                <button class="chip">一個 vec4 只能用 xyzw，rgba 要另外宣告才有</button>
+            </div>
+            <p class="quiz-feedback"></p>
         </div>
     </section>
 
@@ -95,6 +272,7 @@ void main() {
         <h2>原始資料 / 延伸閱讀</h2>
         <ul>
             <li>本課改寫自 <a href="../../遊戲繪圖_02_Shader.md">遊戲繪圖_02_Shader.md</a>（Vertex Shader 段）</li>
+            <li><code>cc_time</code> 定義：<a href="https://docs.cocos.com/creator/3.8/manual/en/shader/uniform.html" target="_blank" rel="noopener">Cocos Creator — Built-in Shader Uniforms</a></li>
             <li>推薦閱讀：<a href="https://learnopengl.com/Getting-started/Shaders" target="_blank" rel="noopener">LearnOpenGL — Shaders</a></li>
         </ul>
     </section>
@@ -122,19 +300,6 @@ document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
         b.classList.add('is-selected');
     });
 });
-(function () {
-    var accepted = ['gl_position', 'glposition', 'position'];
-    var input = document.getElementById('recall-input');
-    var fb = document.getElementById('recall-feedback');
-    function check() {
-        var v = input.value.trim().toLowerCase();
-        var ok = accepted.indexOf(v) !== -1;
-        fb.textContent = ok ? '對了！gl_Position —— 頂點在 Clip Space 的位置。' : '提示：gl_ 開頭，跟「位置」有關。';
-        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
-    }
-    document.getElementById('check-recall').addEventListener('click', check);
-    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { check(); } });
-})();
 </script>
 </body>
 </html>

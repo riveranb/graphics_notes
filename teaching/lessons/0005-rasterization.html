@@ -91,6 +91,12 @@
             <figcaption>把最上面那條放大：頂點算完後、真正填成片段之前，GPU 先做一輪 Cull + Clip，把看不到的丟掉才進 Rasterization。</figcaption>
         </figure>
 
+        <div class="callout">
+            <strong>Cull + Clip 和 Rasterization 中間，還悄悄夾了一步：</strong>GPU fixed-function 自動做
+            <span class="term">Perspective Division</span>（把座標除以 <code>w</code>），把 Clip Space 收斂成標準化的 NDC，再對應到螢幕像素位置——
+            所以光柵化其實是在<strong>螢幕座標</strong>上填的。這步硬體自動完成、免費。至於除以 <code>w</code> 為什麼能做出「近大遠小」，下一課碰到再說。
+        </div>
+
         <table class="glossary-table">
             <thead><tr><th>技術</th><th>誰做</th><th>哪個階段</th><th>丟掉什麼</th></tr></thead>
             <tbody>

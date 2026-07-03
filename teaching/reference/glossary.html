@@ -43,6 +43,7 @@
             <tr><td class="term">Camera Space</td><td>相機空間</td><td>以相機為中心、從鏡頭看出去的座標。</td><td>L3</td></tr>
             <tr><td class="term">Clip Space</td><td>裁剪空間</td><td>投影後的標準盒子 [-1,1]，超出的被裁掉。</td><td>L3 / L4</td></tr>
             <tr><td class="term">Screen Space</td><td>螢幕空間</td><td>最終輸出裝置上的像素座標。</td><td>L3</td></tr>
+            <tr><td class="term">Perspective Division</td><td>透視除法</td><td>GPU 自動把座標除以 w，把 Clip Space 收斂成 NDC；發生在 clip 之後、rasterization 之前。</td><td>L5 / L6</td></tr>
             <tr><td class="term">MVP Matrix</td><td>模型/視圖/投影矩陣</td><td>把頂點從 Object 一路換到 Clip Space 的矩陣（modelView × projection）。</td><td>L3 / L4</td></tr>
             <tr><td class="term">Left / Right-handed</td><td>左手/右手座標系</td><td>X 右、Y 上時 Z 方向的兩種慣例：右手（OpenGL/Cocos）Z 朝外，左手（DirectX/Unity）Z 朝裡。</td><td>L3</td></tr>
             <tr><td class="term">Perspective Projection</td><td>透視投影</td><td>近大遠小（模擬人眼），可視範圍是截頭金字塔。3D 場景用。</td><td>L3</td></tr>

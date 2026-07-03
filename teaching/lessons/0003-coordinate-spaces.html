@@ -208,30 +208,37 @@
             <p class="quiz-feedback" id="order-feedback"></p>
         </div>
         <div class="quiz">
-            <p class="quiz-prompt">2. 下面兩張是同一排柱子的算圖結果。哪一張是<strong>透視投影</strong>（近大遠小）？</p>
+            <p class="quiz-prompt">2. 下面兩張都是一排<strong>真實大小相同</strong>的柱子，每根都標了它距鏡頭的距離 <code>d</code>。哪一張是<strong>透視投影</strong>（近大遠小）？</p>
             <div class="two-col">
                 <figure>
-                    <svg viewBox="0 0 180 110" width="100%" role="img" aria-label="甲：一排柱子往遠處縮小">
-                        <line x1="8" y1="95" x2="172" y2="95" stroke="var(--color-border)" stroke-width="1"></line>
-                        <rect x="18" y="33" width="20" height="62" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
-                        <rect x="58" y="48" width="15" height="47" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
-                        <rect x="92" y="60" width="11" height="35" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
-                        <rect x="118" y="69" width="8" height="26" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                    <svg viewBox="0 0 190 122" width="100%" role="img" aria-label="甲：距鏡頭越遠的柱子畫得越小，地板往遠處收窄">
+                        <polygon points="15,112 175,112 148,66 42,66" fill="none" stroke="var(--color-border)" stroke-width="1"></polygon>
+                        <line x1="95" y1="112" x2="95" y2="66" stroke="var(--color-border)" stroke-width="0.5"></line>
+                        <rect x="30" y="55" width="16" height="50" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                        <rect x="86" y="58" width="10" height="33" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                        <rect x="128" y="55" width="7" height="22" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                        <text x="38" y="120" font-size="9" fill="var(--color-muted)" text-anchor="middle">d=2</text>
+                        <text x="91" y="120" font-size="9" fill="var(--color-muted)" text-anchor="middle">d=4</text>
+                        <text x="131" y="120" font-size="9" fill="var(--color-muted)" text-anchor="middle">d=6</text>
+                        <text x="150" y="60" font-size="9" fill="var(--color-muted)">遠</text>
                     </svg>
                     <figcaption>甲</figcaption>
                 </figure>
                 <figure>
-                    <svg viewBox="0 0 180 110" width="100%" role="img" aria-label="乙：一排柱子大小相同">
-                        <line x1="8" y1="95" x2="172" y2="95" stroke="var(--color-border)" stroke-width="1"></line>
-                        <rect x="20" y="45" width="18" height="50" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
-                        <rect x="57" y="45" width="18" height="50" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
-                        <rect x="94" y="45" width="18" height="50" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
-                        <rect x="131" y="45" width="18" height="50" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                    <svg viewBox="0 0 190 122" width="100%" role="img" aria-label="乙：距鏡頭不同但柱子一樣大，地板平行不收窄">
+                        <polygon points="20,112 150,112 170,66 40,66" fill="none" stroke="var(--color-border)" stroke-width="1"></polygon>
+                        <rect x="38" y="65" width="14" height="40" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                        <rect x="88" y="53" width="14" height="40" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                        <rect x="138" y="41" width="14" height="40" fill="var(--color-accent-bg)" stroke="var(--color-text)" stroke-width="1.5"></rect>
+                        <text x="45" y="120" font-size="9" fill="var(--color-muted)" text-anchor="middle">d=2</text>
+                        <text x="95" y="120" font-size="9" fill="var(--color-muted)" text-anchor="middle">d=4</text>
+                        <text x="145" y="120" font-size="9" fill="var(--color-muted)" text-anchor="middle">d=6</text>
+                        <text x="150" y="60" font-size="9" fill="var(--color-muted)">遠</text>
                     </svg>
                     <figcaption>乙</figcaption>
                 </figure>
             </div>
-            <div class="chip-pool" data-answer="甲" data-ok="對了！近大遠小 = 透視。乙每根柱子一樣大，是正交投影。" data-no="再看一次：透視會讓遠的東西變小。哪一張的柱子往遠處縮小了？">
+            <div class="chip-pool" data-answer="甲" data-ok="對了！d 越大（越遠）柱子畫得越小 = 透視；地板也往遠處收窄。乙不管多遠都一樣大，是正交。" data-no="看每根柱子標的距離 d：哪一張「d 越大、畫得越小」？那張才有近大遠小。">
                 <button class="chip">甲</button>
                 <button class="chip">乙</button>
             </div>

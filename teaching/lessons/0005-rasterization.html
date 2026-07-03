@@ -92,9 +92,19 @@
         </figure>
 
         <div class="callout">
-            <strong>Cull + Clip 和 Rasterization 中間，還悄悄夾了一步：</strong>GPU fixed-function 自動做
-            <span class="term">Perspective Division</span>（把座標除以 <code>w</code>），把 Clip Space 收斂成標準化的 NDC，再對應到螢幕像素位置——
-            所以光柵化其實是在<strong>螢幕座標</strong>上填的。這步硬體自動完成、免費。至於除以 <code>w</code> 為什麼能做出「近大遠小」，下一課碰到再說。
+            <p style="margin-top:0"><strong>Cull + Clip 和 Rasterization 中間，還悄悄夾了一步：<span class="term">Perspective Division</span>（透視除法）。</strong></p>
+            <p>
+                還記得第 4 課每個頂點都是 <code>vec4</code>、有第 4 個分量 <code>w</code> 嗎？
+                投影那步偷偷把「<strong>這個頂點離相機多遠</strong>」存進了 <code>w</code>。
+                GPU 在這裡自動把 <code>x, y, z</code> 都除以 <code>w</code> —— 也就是<strong>除以距離</strong>：
+            </p>
+            <pre style="margin:0.6em 0"><code>近的頂點：x=2, w=2（距離 2）→ x/w = 1.0
+遠的頂點：x=2, w=8（距離 8）→ x/w = 0.25   ← 同樣的 x，遠的變小</code></pre>
+            <p style="margin-bottom:0">
+                除以越大的數、結果越小 → <strong>遠的東西自動縮小，這就是「近大遠小」真正發生的瞬間</strong>（第 3 課透視投影的效果，就是這裡做出來的）。
+                做完除法，座標就收斂成標準化的 NDC、再對應到螢幕像素——所以光柵化是在<strong>螢幕座標</strong>上填的。
+                這步是 GPU fixed-function 硬體自動完成，免費，你不用寫任何程式。
+            </p>
         </div>
 
         <table class="glossary-table">

@@ -42,6 +42,16 @@
             回到管線那條帶子：<span class="term">Vertex Shader</span> 是<strong>第一個「可程式化」階段</strong>——
             前面的 Application 在 CPU 準備好資料，接著 GPU 就開始跑你寫的 vertex shader。
         </p>
+        <figure>
+            <div class="pipeline-strip">
+                <span class="stage">Application<small>CPU · 準備＋上傳資料</small></span>
+                <span class="stage is-current">Vertex Shader<small>GPU · 你寫的程式</small></span>
+                <span class="stage">Rasterization<small>GPU</small></span>
+                <span class="stage">Fragment Shader<small>GPU · 你寫的程式</small></span>
+                <span class="stage">Output Merging<small>GPU</small></span>
+            </div>
+            <figcaption>CPU（Application）把頂點資料準備好、上傳 → 交棒給 GPU，第一個跑的就是你寫的 Vertex Shader（反白這格）。</figcaption>
+        </figure>
         <p>它的處理單位是<strong>頂點</strong>：Mesh 有幾個頂點，這支程式就跑幾次，每次處理一個。它唯一的硬性任務只有一件事：</p>
         <div class="callout">
             算出這個頂點<strong>最後落在畫面的哪裡</strong>——也就是輸出 <code>gl_Position</code>（頂點在 <span class="term">Clip Space</span> 的位置）。

@@ -186,25 +186,30 @@ vec4(position.xyz, 1.0)   // 取 xyz 再補一個 w=1.0 —— 每支 shader 都
     </section>
 
     <section>
-        <h2>動手改一行：讓表面做出 sin wave</h2>
+        <h2>動手改：先動頂點，做出 sin wave</h2>
         <p>
             Vertex Shader 既然決定每個頂點的位置，那我們就能<strong>在送去投影之前，先動它的座標</strong>。
-            這就是水面、旗子飄動這類效果的做法——一支 shader，改幾行而已：
+            這就是水面、旗子飄動這類效果的做法。先看最簡單的一種——把每個頂點往上抬一點：
         </p>
-        <pre><code>uniform float uTime;                    // 一直變大的時間（CPU 每幀傳進來）
-
-void main() {
+        <pre><code>void main() {
     vec3 pos = position;
-    pos.y += sin(pos.x + uTime);        // 依 x 起伏、隨時間前進 → 波
+    pos.y += 0.2;               // 每個頂點往上抬 0.2 → 整個表面平移上去
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
 }</code></pre>
-        <p>波動要成立，這一行需要三個零件同時到位：<code>sin()</code>（才有波形）、<code>pos.x</code>（波形隨空間變化）、<code>uTime</code>（波才會往前跑）。缺一個就不是「會動的波」。</p>
+        <p>
+            但固定 <code>+0.2</code> 只是<strong>整片平移</strong>，還不會動。想做出會流動的水波，得把那個固定值換成一個「同時看位置和時間」的值，需要三個想法湊在一起：
+        </p>
+        <ul>
+            <li><code>sin(...)</code> — 產生上下起伏的<strong>波形</strong></li>
+            <li>讓它跟著位置 <code>pos.x</code> 變化 — 波峰才會<strong>沿表面排開</strong>，而不是整片一起動</li>
+            <li>加進一個會變大的<strong>時間</strong> — 波才會<strong>往前跑</strong></li>
+        </ul>
         <div class="callout callout--cocos">
-            <strong>對應到 Cocos：</strong>上面用 <code>uniform float uTime</code> 是通用寫法（你得自己宣告、自己每幀傳）。
-            在 Cocos Creator 你<strong>不用自己宣告</strong>——引擎內建全域 uniform <code>cc_time</code>（<code>vec4</code>），
-            直接用 <code>cc_time.x</code> 就是「啟動至今的秒數」。所以在 Cocos 裡那行會寫成
-            <code>pos.y += sin(pos.x + cc_time.x);</code>。
+            <strong>時間哪來？對應到 Cocos：</strong>通用寫法要自己宣告一個 <code>uniform float</code> 每幀傳進來；
+            在 Cocos Creator <strong>不用自己宣告</strong>——引擎內建全域 uniform <code>cc_time</code>（<code>vec4</code>），
+            直接用 <code>cc_time.x</code> 就是「啟動至今的秒數」。
         </div>
+        <p>那這三個想法要怎麼<strong>湊成一行</strong>塞進 <code>pos.y += ____;</code>？就是下面的 Q3——自己組裝看看。</p>
     </section>
 
     <section>

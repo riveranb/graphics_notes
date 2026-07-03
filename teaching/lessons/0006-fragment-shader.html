@@ -13,7 +13,7 @@
 </nav>
 <main>
     <header class="lesson-header">
-        <p class="lesson-meta">Lesson 0006 · 約 8 分鐘 · 有一小段程式碼</p>
+        <p class="lesson-meta">Lesson 0006 · 約 13 分鐘 · 有程式碼，可動手</p>
         <h1>Fragment Shader：決定「顏色」的那支程式</h1>
     </header>
 
@@ -28,66 +28,210 @@
     <section class="callout callout--win">
         <strong>這堂課結束後，你會：</strong>
         <ul>
-            <li>知道 Fragment Shader = 每個<strong>片段/像素</strong>跑一次的小程式</li>
-            <li>知道它的工作：算出這個像素的<strong>最終顏色</strong></li>
-            <li>建立除錯直覺：<strong>顏色不對，先來這裡找</strong></li>
+            <li>知道 Fragment Shader 在管線的<strong>哪個位置、每次處理什麼</strong></li>
+            <li>看懂它的<strong>資料流</strong>：內插過的 varying 進來、gl_FragColor 出去</li>
+            <li>會三個實戰改法：<strong>染色（tint）、UV 除錯顯示、用時間做呼吸閃爍</strong></li>
+            <li>建立除錯直覺：<strong>顏色不對，先來這裡查什麼</strong></li>
         </ul>
     </section>
 
     <section>
-        <h2>第二種你會改的程式碼</h2>
+        <h2>它在管線的哪、負責什麼</h2>
         <p>
-            Vertex Shader 決定「頂點在哪」，<span class="term">Fragment Shader</span> 決定「每個像素是什麼顏色」。
-            畫面太亮太暗、顏色怪、貼圖沒出來 —— 十之八九改這支。一支最簡單的長這樣：
+            接著第 5 課：Rasterization 把三角形填成一格格<span class="term">Fragment</span>（片段），
+            每個片段帶著內插好的資料（UV、顏色、法線…）。
+            <span class="term">Fragment Shader</span> 就是<strong>每個片段跑一次</strong>的小程式，
+            它唯一的硬性任務：算出這個片段的<strong>最終顏色</strong>——輸出 <code>gl_FragColor</code>。
         </p>
-        <pre><code>varying vec2 vTexCoord;            // 從 Vertex Shader 內插來的 UV
-uniform sampler2D diffuseMap;     // 一張綁定的貼圖
-
-void main() {
-    vec4 texColor = texture2D(diffuseMap, vTexCoord);  // 用 UV 去貼圖取色
-    gl_FragColor = texColor;                            // 輸出：最終顏色
-}</code></pre>
-    </section>
-
-    <section>
-        <h2>輸入輸出</h2>
-        <ul>
-            <li><span class="term">varying</span>/in — <strong>輸入</strong>：從 Vertex Shader 傳來、被光柵化<strong>內插</strong>過的資料（UV、法線…）</li>
-            <li><span class="term">uniform</span> — <strong>輸入</strong>：全域值，如貼圖 <code>sampler2D</code>、光照參數</li>
-            <li><span class="term">gl_FragColor</span> — <strong>輸出</strong>：這個片段的最終顏色 (r,g,b,a)</li>
-        </ul>
-        <p>
-            上面那行 <code>texture2D(diffuseMap, vTexCoord)</code> 就是「拿 UV 去貼圖上取顏色」——
-            正是下一課 <a href="0007-texture-and-uv.html">Texture</a> 的主題。
-        </p>
+        <figure>
+            <div class="pipeline-strip">
+                <span class="stage">Vertex Shader<small>GPU · 每頂點一次</small></span>
+                <span class="stage">Rasterization<small>GPU · 填成片段＋內插</small></span>
+                <span class="stage is-current">Fragment Shader<small>GPU · 每片段一次 · 你寫的程式</small></span>
+                <span class="stage">Output Merging<small>GPU · 寫進畫面</small></span>
+            </div>
+            <figcaption>光柵化填出幾個片段，這支程式就跑幾次——每次算一個片段的顏色。</figcaption>
+        </figure>
         <div class="callout">
             兩支 shader 的分工，一句話：<strong>Vertex Shader 算位置，Fragment Shader 算顏色。</strong>
+            畫面太亮太暗、顏色怪、貼圖沒出來——十之八九改這支。
+        </div>
+    </section>
+
+    <section>
+        <h2>先看它長怎樣</h2>
+        <p>一支最常見的 Fragment Shader（GLSL），一行行拆：</p>
+        <pre><code>varying vec2 vTexCoord;           // 輸入：Vertex Shader 傳來、內插過的 UV
+uniform sampler2D diffuseMap;     // 輸入：全域，一張綁定的貼圖
+
+void main() {
+    vec4 texColor = texture2D(diffuseMap, vTexCoord);  // 拿 UV 去貼圖取色
+    gl_FragColor = texColor;                            // 輸出：最終顏色 (r,g,b,a)
+}</code></pre>
+        <p><code>texture2D(貼圖, UV)</code> 的細節（取樣、filtering）是下一課 <a href="0007-texture-and-uv.html">Texture</a> 的主題，這裡先當「去貼圖上拿顏色」就好。</p>
+    </section>
+
+    <section>
+        <h2>資料流：跟 Vertex Shader 一樣的讀法</h2>
+        <figure>
+            <svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" role="img"
+                 aria-label="Fragment Shader 資料流：內插過的 varying 與 uniform 輸入，main 加工，輸出 gl_FragColor">
+                <rect x="8" y="30" width="192" height="52" rx="6" fill="var(--color-accent-bg)" stroke="var(--color-accent)"/>
+                <text x="104" y="52" text-anchor="middle" font-size="13" font-weight="700" fill="var(--color-accent)">varying</text>
+                <text x="104" y="70" text-anchor="middle" font-size="11" fill="var(--color-muted)">內插過 · 每片段各自不同</text>
+
+                <rect x="8" y="120" width="192" height="52" rx="6" fill="var(--color-accent-bg)" stroke="var(--color-accent)"/>
+                <text x="104" y="142" text-anchor="middle" font-size="13" font-weight="700" fill="var(--color-accent)">uniform</text>
+                <text x="104" y="160" text-anchor="middle" font-size="11" fill="var(--color-muted)">全域共用 · 貼圖/時間/顏色</text>
+
+                <line x1="200" y1="56" x2="268" y2="90" stroke="var(--color-muted)" stroke-width="1.5" marker-end="url(#ah6)"/>
+                <line x1="200" y1="146" x2="268" y2="112" stroke="var(--color-muted)" stroke-width="1.5" marker-end="url(#ah6)"/>
+
+                <rect x="270" y="66" width="160" height="70" rx="6" fill="#fff" stroke="var(--color-text)"/>
+                <text x="350" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="var(--color-text)">main()</text>
+                <text x="350" y="116" text-anchor="middle" font-size="11" fill="var(--color-muted)">每個片段跑一次</text>
+
+                <line x1="430" y1="101" x2="498" y2="101" stroke="var(--color-muted)" stroke-width="1.5" marker-end="url(#ah6)"/>
+
+                <rect x="500" y="73" width="192" height="56" rx="6" fill="var(--color-accent-bg)" stroke="var(--color-accent)"/>
+                <text x="596" y="95" text-anchor="middle" font-size="13" font-weight="700" fill="var(--color-accent)">gl_FragColor</text>
+                <text x="596" y="113" text-anchor="middle" font-size="11" fill="var(--color-muted)">必給 · 最終顏色 (r,g,b,a)</text>
+
+                <defs>
+                    <marker id="ah6" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="var(--color-muted)"/>
+                    </marker>
+                </defs>
+            </svg>
+            <figcaption>跟第 4 課同一套讀法：輸入 → main() → 輸出。差別是這裡的 varying 已經被內插過、輸出的是顏色。</figcaption>
+        </figure>
+        <ul>
+            <li>
+                <span class="term">varying</span> — <strong>輸入</strong>：Vertex Shader 傳出、
+                在 Rasterization 被<strong>內插</strong>過的資料。到手的不是某個頂點的原值，是「按位置混合過」的值（第 5 課的 lerp）。
+            </li>
+            <li><span class="term">uniform</span> — <strong>輸入</strong>：全域值。貼圖 <code>sampler2D</code>、時間、光照參數都走這。</li>
+            <li><span class="term">gl_FragCoord</span> — <strong>內建輸入</strong>：這個片段在螢幕上的像素座標（偶爾用到，知道有就好）。</li>
+            <li><span class="term">gl_FragColor</span> — <strong>輸出</strong>：這個片段的最終顏色 <code>(r,g,b,a)</code>，每個分量 0～1。</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>動手改：三個實戰小改法</h2>
+        <p>Fragment Shader 是你最常動手的地方。三個真實工作裡天天見的改法：</p>
+
+        <h3>① 染色（tint）：乘一個顏色</h3>
+        <pre><code>uniform vec4 uTintColor;          // 自己宣告的全域值，CPU 端設定
+
+void main() {
+    vec4 texColor = texture2D(diffuseMap, vTexCoord);
+    gl_FragColor = texColor * uTintColor;   // 逐分量相乘：r×r, g×g, b×b, a×a
+}</code></pre>
+        <p>
+            <code>vec4 × vec4</code> 是<strong>逐分量相乘</strong>（第 4 課的 vec4，每個位置各乘各的）。
+            tint 設 <code>(1,1,1,1)</code> 等於不變；設 <code>(1,0,0,1)</code> 就只剩紅色分量——角色受傷變紅、UI 反灰都是這招。
+        </p>
+
+        <h3>② UV 除錯顯示：把資料當顏色印出來</h3>
+        <pre><code>void main() {
+    gl_FragColor = vec4(vTexCoord, 0.0, 1.0);   // u→紅、v→綠
+}</code></pre>
+        <p>
+            貼圖貼歪的時候，工程師會暫時把 UV 直接當顏色輸出：u 進紅色、v 進綠色。
+            UV (0,0) 的角落變黑、(1,0) 變紅、(0,1) 變綠、(1,1) 變黃——
+            畫面會是一片平滑漸層，<strong>那個漸層就是第 5 課的內插正在發生</strong>。
+            漸層不對（斷裂、方向反了），就知道是 UV 資料壞了,不是貼圖壞了。
+        </p>
+
+        <h3>③ 呼吸閃爍：用時間動起來</h3>
+        <pre><code>void main() {
+    vec4 texColor = texture2D(diffuseMap, vTexCoord);
+    float breath = sin(cc_time.x) * 0.5 + 0.5;   // -1~1 重新映射到 0~1
+    gl_FragColor = texColor * breath;
+}</code></pre>
+        <p>
+            <code>sin()</code> 的輸出是 <strong>-1～1</strong>，但顏色只吃 <strong>0～1</strong>（負的會被夾成 0，等於有一半時間全黑）。
+            所以先 <code>×0.5</code> 壓成 -0.5～0.5、再 <code>+0.5</code> 抬到 0～1——
+            這個「<strong>×0.5 + 0.5 重新映射</strong>」在 shader 裡到處都是，記下來。
+        </p>
+        <div class="callout">
+            <strong>對應到 Cocos：</strong><code>cc_time</code> 是引擎內建全域 uniform（<code>vec4</code>），不用自己宣告，
+            <code>cc_time.x</code> = 啟動至今的秒數——第 4 課 sin wave 用過的同一個。
         </div>
     </section>
 
     <section>
         <h2>它會跑「非常」多次</h2>
         <p>
-            畫面上每個被蓋到的像素都要跑一次 fragment shader —— 通常比頂點多幾個數量級。
-            所以這裡的每一行都很貴，效能問題常出在這支。
+            一個 1920×1080 的畫面約有 <strong>200 萬個像素</strong>；而一個普通模型可能只有<strong>幾千個頂點</strong>。
+            也就是說 fragment shader 的執行次數，動輒是 vertex shader 的<strong>幾百到幾千倍</strong>——
+            同一行浪費的程式碼，在這裡的代價放大幾個數量級。效能問題常出在這支，就是這個原因。
         </p>
     </section>
 
     <section>
+        <h2>它做不到什麼</h2>
+        <ul>
+            <li><strong>不能動位置</strong>——片段的螢幕位置在光柵化時就定了，這裡只能決定顏色（要動位置回第 4 課）。</li>
+            <li><strong>不能直接跟畫面上已有的顏色混合</strong>——半透明疊色是下一階段 Output Merging 的事（第 9 課 Blending）。這支只負責交出「我這個片段的顏色」。</li>
+        </ul>
+    </section>
+
+    <section>
         <h2>快速確認</h2>
+
         <div class="quiz">
-            <p class="quiz-prompt">畫面顏色不對，你最先去看哪支 shader？</p>
-            <div class="chip-pool" data-answer="Fragment Shader" data-ok="對了！顏色是 Fragment Shader 的輸出。" data-no="想一下：哪支負責『顏色』？">
-                <button class="chip">Vertex Shader</button>
-                <button class="chip">Fragment Shader</button>
+            <p class="quiz-prompt">Q1　貼圖取到的顏色是 <code>(0.8, 0.6, 0.4, 1.0)</code>，tint 設 <code>(1.0, 0.5, 0.0, 1.0)</code>。<br>
+                <code>texColor * uTintColor</code> 輸出是？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="(0.8, 0.3, 0.0, 1.0)"
+                 data-ok="對了！逐分量相乘：0.8×1.0、0.6×0.5、0.4×0.0、1.0×1.0。藍色分量被乘成 0，整個偏橘。"
+                 data-no="vec4 × vec4 是每個位置各乘各的（逐分量），不是相加、也不是整體縮放。">
+                <button class="chip">(0.8, 0.3, 0.0, 1.0)</button>
+                <button class="chip">(1.8, 1.1, 0.4, 2.0)</button>
+                <button class="chip">(0.8, 0.6, 0.4, 1.0)</button>
+                <button class="chip">(0.4, 0.3, 0.2, 0.5)</button>
             </div>
             <p class="quiz-feedback"></p>
         </div>
+
         <div class="quiz">
-            <p class="quiz-prompt">Fragment Shader 最主要輸出什麼？（中文或英文）</p>
-            <input type="text" class="quiz-input" id="recall-input" autocomplete="off" placeholder="一個詞">
-            <div class="quiz-actions"><button class="btn" id="check-recall">檢查</button></div>
-            <p class="quiz-feedback" id="recall-feedback"></p>
+            <p class="quiz-prompt">Q2　想讓亮度在 <strong>0～1 之間</strong>平滑呼吸，哪個寫法對？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="sin(cc_time.x) * 0.5 + 0.5"
+                 data-ok="對了！sin 是 -1~1，先 ×0.5 再 +0.5 映射到 0~1。這個 remap 技巧 shader 裡到處都是。"
+                 data-no="先想 sin() 的輸出範圍是 -1~1，而顏色只吃 0~1——負值會被夾成 0。">
+                <button class="chip">sin(cc_time.x) * 0.5 + 0.5</button>
+                <button class="chip">sin(cc_time.x)　→ 有一半時間是負值被夾成 0，物件一半時間全黑</button>
+                <button class="chip">sin(cc_time.x) + 1.0　→ 範圍變 0~2，一半時間過曝定在最亮</button>
+                <button class="chip">cc_time.x * 0.5　→ 不是週期，只會一路變亮</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">Q3　你用 <code>gl_FragColor = vec4(vTexCoord, 0.0, 1.0);</code> 檢查 UV，
+                畫面某個角落顯示<strong>黃色</strong>（紅+綠都全亮）。那個角落的 UV 是？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="(1, 1)"
+                 data-ok="對了！u 進紅、v 進綠，黃 = 紅 1 + 綠 1 → UV = (1,1)。看顏色就能反推資料，這就是這招好用的地方。"
+                 data-no="回想對應：u→紅色分量、v→綠色分量。黃色 = 紅和綠都是 1。">
+                <button class="chip">(1, 1)</button>
+                <button class="chip">(0, 0)</button>
+                <button class="chip">(1, 0)</button>
+                <button class="chip">(0, 1)</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">Q4　某個物件<strong>整個變純黑</strong>，但形狀輪廓正常、其他物件也正常。最該先查哪裡？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="Fragment Shader：有沒有路徑沒寫到 gl_FragColor，或顏色被算成 0"
+                 data-ok="對了！輪廓正常 = 頂點位置沒問題（Vertex Shader / culling 都排除），剩下就是顏色這關——這支的輸出。"
+                 data-no="用排除法：輪廓正常代表位置對（gl_Position、winding、index 都沒事），問題只剩「顏色」。">
+                <button class="chip">Fragment Shader：有沒有路徑沒寫到 gl_FragColor，或顏色被算成 0</button>
+                <button class="chip">Vertex Shader：gl_Position 沒輸出</button>
+                <button class="chip">Winding order 反了，被 Back Face Culling 剔除</button>
+                <button class="chip">CPU 沒上傳 Index Buffer</button>
+            </div>
+            <p class="quiz-feedback"></p>
         </div>
     </section>
 
@@ -95,12 +239,13 @@ void main() {
         <h2>原始資料 / 延伸閱讀</h2>
         <ul>
             <li>本課改寫自 <a href="../../遊戲繪圖_02_Shader.md">遊戲繪圖_02_Shader.md</a>（Fragment Shader 段）</li>
+            <li><code>cc_time</code> 定義：<a href="https://docs.cocos.com/creator/3.8/manual/en/shader/uniform.html" target="_blank" rel="noopener">Cocos Creator — Built-in Shader Uniforms</a></li>
             <li>推薦閱讀：<a href="https://thebookofshaders.com/" target="_blank" rel="noopener">The Book of Shaders</a>（片段著色器的互動入門）</li>
         </ul>
     </section>
 
     <section class="callout callout--ask">
-        <p>想試著改一支 fragment shader 看畫面變化？問你的教學 agent（<code>/teach</code>）帶你玩。</p>
+        <p>想把這三個改法貼進真的專案玩？問你的教學 agent（<code>/teach</code>）帶你玩。</p>
     </section>
 
     <nav class="lesson-nav lesson-nav--bottom">
@@ -110,19 +255,6 @@ void main() {
 </main>
 
 <script>
-(function () {
-    var accepted = ['顏色', 'color', 'gl_fragcolor', 'fragcolor', '像素顏色'];
-    var input = document.getElementById('recall-input');
-    var fb = document.getElementById('recall-feedback');
-    function check() {
-        var v = input.value.trim().toLowerCase();
-        var ok = accepted.indexOf(v) !== -1;
-        fb.textContent = ok ? '對了！最終像素顏色（gl_FragColor）。' : '提示：畫面上你看到的那個東西。';
-        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
-    }
-    document.getElementById('check-recall').addEventListener('click', check);
-    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { check(); } });
-})();
 document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
     var fb = pool.parentElement.querySelector('.quiz-feedback');
     pool.addEventListener('click', function (e) {

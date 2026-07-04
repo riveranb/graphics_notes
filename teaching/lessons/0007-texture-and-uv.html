@@ -115,6 +115,18 @@
             所以 <code>sampler2D</code> <strong>不是圖檔路徑、也不是圖的內容</strong>——它是「一張已經住在顯存裡的貼圖」的把手。
             貼圖沒出來時值得先問：這張圖<strong>真的有被上傳並綁定嗎</strong>？還是 shader 拿到的是一個空把手？
         </div>
+
+        <h3>它占多少顯存？算得出來</h3>
+        <p>上傳後占的顯存跟<strong>圖檔大小（PNG/JPG 有壓縮）無關</strong>——住進顯存的是解碼後的原始像素：</p>
+        <pre><code>顯存占用 = width × height × 每個 Texel 的 bytes 數（channel 數）
+
+RGBA 每 channel 1 byte → 每個 Texel 4 bytes：
+1024 × 1024 × 4 bytes = 4 MB
+2048 × 2048 × 4 bytes = 16 MB    ← 邊長 ×2，容量 ×4</code></pre>
+        <p>
+            所以一張「看起來才幾百 KB 的 PNG」上了 GPU 可能就是好幾 MB；
+            邊長翻倍、占用翻四倍——這就是貼圖是<strong>顯存大戶</strong>的原因（等下 Mipmap 還會再加約 33%）。
+        </p>
     </section>
 
     <section>

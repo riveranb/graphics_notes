@@ -78,18 +78,13 @@ N·L = 0·0 + 1·1 + 0·0 = 1      → 最亮
 N = (1,0,0) 朝右   L = (0,1,0) 光從上
 N·L = 1·0 + 0·1 + 0·0 = 0      → 沒有 diffuse（只剩 ambient）</code></pre>
 
-        <h3>別忘了 normalize（正規化）</h3>
         <p>
-            上面 N·L 能當「多正對光」的分數，有個<strong>前提：N、L 都要是長度 1</strong>。
-            點積其實是 <code>|N|·|L|·cos θ</code>——只有長度都為 1，<code>N·L</code> 才剛好等於 <code>cos θ</code>；長度不是 1，就把多餘的長度乘進了亮度。
+            前提：<code>N·L</code> 要準，<strong>N、L 都得先 normalize（正規化成長度 1）</strong>再做點積——
+            算光照前固定先來這一手：
         </p>
-        <p>
-            最常踩的雷：法線是從 Vertex Shader 經 <code>varying</code> <strong>內插</strong>進 Fragment Shader 的（第 5 課），
-            而內插兩個單位向量會讓結果<strong>變短、不再是 1</strong>。所以算光照前通常先重新正規化：
-        </p>
-        <pre><code>vec3 N = normalize(vNormal);    // 內插後長度跑掉，拉回 1
-vec3 L = normalize(lightDir);   // 指向光源的方向也要</code></pre>
-        <p>忘了 normalize → 光照偏暗、明暗怪怪的，是很常見的 bug。（下面 demo 的 L 就用了 <code>normalize()</code>。）</p>
+        <pre><code>vec3 N = normalize(vNormal);
+vec3 L = normalize(lightDir);
+float diff = max(dot(N, L), 0.0);</code></pre>
 
         <figure class="shader-demo shader-demo--square">
             <canvas data-frag="precision mediump float;
@@ -211,12 +206,12 @@ void main() {
         </div>
 
         <div class="quiz">
-            <p class="quiz-prompt">Q4　Fragment Shader 裡的法線是從 Vertex Shader 經 varying <strong>內插</strong>進來的。算 <code>N·L</code> 之前，通常要先對它做什麼？</p>
-            <div class="chip-pool chip-pool--stack" data-answer="normalize()——內插後長度不再是 1，不重新正規化，N·L 算出的亮度會偏掉"
-                 data-ok="對了！內插兩個單位向量結果會變短，normalize 把它拉回長度 1，N·L 才是正確的『多正對光』。"
-                 data-no="想一下：內插（第 5 課）會不會改變向量長度？長度變了，N·L 還準嗎？">
-                <button class="chip">normalize()——內插後長度不再是 1，不重新正規化，N·L 算出的亮度會偏掉</button>
-                <button class="chip">什麼都不用，內插不會改變向量長度</button>
+            <p class="quiz-prompt">Q4　算 Diffuse 的 <code>N·L</code> 之前，對 N、L 一定要先做什麼，點積才會準？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="先 normalize，把兩個向量都正規化成長度 1"
+                 data-ok="對了！N·L 要當『多正對光』的分數，前提是兩個都是單位向量——先 normalize 再點積。"
+                 data-no="回想公式前提：N·L 要對，兩個向量的長度必須是多少？">
+                <button class="chip">先 normalize，把兩個向量都正規化成長度 1</button>
+                <button class="chip">什麼都不用，方向對就好、長度沒差</button>
                 <button class="chip">乘以 2 讓表面更亮</button>
                 <button class="chip">轉成 vec4 才能算點積</button>
             </div>

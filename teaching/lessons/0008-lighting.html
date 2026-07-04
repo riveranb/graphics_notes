@@ -270,6 +270,22 @@ void main() {
             </div>
             <p class="quiz-feedback"></p>
         </div>
+        <div class="quiz">
+            <p class="quiz-prompt">Q4：複選題。關於 Directional / Point / Spot light，哪些說法正確？</p>
+            <div class="chip-pool chip-pool--stack" data-multi-answer="true"
+                 data-ok="正確：Directional 不看距離；Point 的方向對每個 pixel 用 lightPos - fragPos 算；Spot 有照射方向，也可以有 cutoff 與距離衰減。"
+                 data-no="再想一次：Directional 是方向固定；Point 從位置往外發散；Spot 像手電筒，有方向、光錐 cutoff，也常搭配 distance attenuation。">
+                <button class="chip" data-correct="true">Directional light 的亮度跟光源距離無關。</button>
+                <button class="chip">Directional light 離物件越遠越暗。</button>
+                <button class="chip" data-correct="true">Point light 本身沒有固定朝向；每個 pixel 的 <code>L = normalize(lightPos - fragPos)</code>。</button>
+                <button class="chip">Point light 對整個物件只用同一個固定方向。</button>
+                <button class="chip" data-correct="true">Spot light 有照射方向，並用 cutoff angle 決定光錐範圍。</button>
+                <button class="chip" data-correct="true">Spot light 也可以用 <code>distance(lightPos, fragPos)</code> 做距離衰減。</button>
+                <button class="chip">Spot light 只會被 cutoff 影響，不會做距離衰減。</button>
+                <button class="chip" data-check="true">確認答案</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
 
     </section>
 
@@ -305,6 +321,22 @@ document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
         b.classList.add('is-selected');
     });
 });
-</script>
+document.querySelectorAll('.chip-pool[data-multi-answer]').forEach(function (pool) {
+    var fb = pool.parentElement.querySelector('.quiz-feedback');
+    pool.addEventListener('click', function (e) {
+        var b = e.target.closest('.chip');
+        if (!b) { return; }
+        if (!b.dataset.check) {
+            b.classList.toggle('is-selected');
+            return;
+        }
+        var chips = Array.from(pool.querySelectorAll('.chip:not([data-check])'));
+        var ok = chips.every(function (c) {
+            return c.classList.contains('is-selected') === Boolean(c.dataset.correct);
+        });
+        fb.textContent = ok ? pool.dataset.ok : pool.dataset.no;
+        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
+    });
+});</script>
 </body>
 </html>

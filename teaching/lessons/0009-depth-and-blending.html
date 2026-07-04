@@ -42,8 +42,8 @@
             <figcaption>GPU 為每個像素記一個「離鏡頭多遠」的深度值——這就是 Depth Buffer 的內容。</figcaption>
         </figure>
         <p>
-            Fragment Shader 算完顏色，還沒真的寫進畫面。最後的 <span class="term">Output Merging</span> 階段，
-            GPU 先做 <span class="term">Depth test</span>（深度測試），再決定寫不寫。
+            Fragment Shader 算完顏色，還沒寫進畫面。最後的 <span class="term">Output Merging</span> 階段，
+            GPU 先做 <span class="term">Depth test</span>（深度測試）再決定寫不寫。
         </p>
     </section>
 
@@ -57,19 +57,25 @@
 新片段 z = 0.3（較近）→ 比 0.7 近 → 顏色寫入，Depth Buffer 更新成 0.3
 新片段 z = 0.9（較遠）→ 比 0.7 遠 → 整個丟掉（被擋住）</code></pre>
         <p>
-            不透明物體的遮擋就這樣自動搞定，<strong>跟繪製順序無關</strong>——先畫後畫，結果都對。
+            預設比較規則是 <strong>less</strong>（新片段較近才通過）。不透明物體的遮擋就這樣自動搞定，<strong>跟繪製順序無關</strong>。
         </p>
         <div class="callout">
-            <strong>z-fighting：</strong>兩個面深度幾乎一樣時，精度不夠分不出誰近，畫面上兩面互相搶著閃爍。
-            第 5 課提過深度經過 ÷w 之後<strong>近處精度多、遠處精度少</strong>——所以 z-fighting 常發生在遠處，
-            而「near plane 別設太小」正是為了省下精度。
+            <strong>對應到 Cocos：</strong>material 的 pass 裡這些是 <code>depthStencilState</code> 的參數——
+            <code>depthTest</code>（開不開測試）、<code>depthFunc</code>（比較規則，預設 <code>less</code>）、
+            <code>depthWrite</code>（要不要把深度寫回 buffer）。<strong>透明物體就是把 <code>depthWrite</code> 關掉</strong>的那個開關。
+        </div>
+        <div class="callout">
+            <strong>z-fighting：</strong>兩面深度幾乎一樣時，精度分不出誰近，畫面上兩面互相搶著閃爍。
+            第 5 課提過 ÷w 之後<strong>近處精度多、遠處精度少</strong>，所以 z-fighting 常在遠處。
+            關鍵是 <strong>far / near 的比值</strong>別太大：<code>near=1, far=100</code>（比值 100）就比
+            <code>near=0.01, far=1000</code>（比值十萬）健康得多——near 別貪心設超小。
         </div>
     </section>
 
     <section>
         <h2>Blending：透明是「混色」不是「覆蓋」</h2>
         <p>
-            不透明片段通過 depth test 後直接覆蓋。但透明片段要跟<strong>畫面上已有的顏色混合</strong>——
+            不透明片段直接覆蓋。但透明片段要跟<strong>畫面上已有的顏色混合</strong>——
             這就是第 6 課說 Fragment Shader 做不到、要交給這一階段的 <span class="term">Blending</span>。最常見的 Alpha 混合：
         </p>
         <pre><code>C_out = C_src × α + C_dst × (1 − α)
@@ -85,7 +91,7 @@
         </div>
 
         <h3>通用公式：換 Factor 就換效果</h3>
-        <p>其實 GPU 只認一條通用式，各種效果都是<strong>換兩個權重（Blend Factor）</strong>變出來的：</p>
+        <p>GPU 只認一條通用式，各種效果都是<strong>換兩個權重（Blend Factor）</strong>變出來的：</p>
         <pre><code>C_out = C_src × F_src  +  C_dst × F_dst</code></pre>
         <table class="glossary-table">
             <thead><tr><th>效果</th><th>F_src</th><th>F_dst</th><th>結果</th></tr></thead>
@@ -189,15 +195,6 @@
         <p style="margin-bottom:0">
             從 Mesh 進去，到像素寫進畫面。現在看到渲染程式碼，你應該能說出它落在哪一階段了。
         </p>
-    </section>
-
-    <section>
-        <h2>接下來可以往哪走</h2>
-        <ul>
-            <li><strong>進階主題</strong>（之後可加課）：NormalMap（用貼圖假造凹凸）、Shadow（陰影）。</li>
-            <li><strong>路 2 — 跟著程式碼走</strong>：打開一支真實的 effect / shader，逐段對照這 9 課。</li>
-            <li><strong>路 3 — 跟著 bug 走</strong>：全黑、貼圖爆掉、z-fighting、透明怪、物件消失 —— 每個症狀對應這條管線的一站。</li>
-        </ul>
     </section>
 
     <section class="citation">

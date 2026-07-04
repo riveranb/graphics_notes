@@ -13,7 +13,7 @@
 </nav>
 <main>
     <header class="lesson-header">
-        <p class="lesson-meta">Lesson 0009 · 約 9 分鐘 · 最後一課</p>
+        <p class="lesson-meta">Lesson 0009 · 約 12 分鐘 · 最後一課</p>
         <h1>Depth test + Blending：誰擋誰、怎麼混色</h1>
     </header>
 
@@ -28,9 +28,10 @@
     <section class="callout callout--win">
         <strong>這堂課結束後，你會：</strong>
         <ul>
-            <li>知道 Depth test（Z-buffer）：<strong>近的擋遠的</strong>，GPU 自動處理不透明遮擋</li>
-            <li>知道透明物體的兩個規矩：<strong>關深度寫入</strong> + <strong>從後往前畫</strong></li>
-            <li>知道 Blending 換 factor 就換效果（Alpha / Additive）</li>
+            <li>會判斷 <strong>Depth test</strong>：比深度值，近的寫入、遠的丟掉</li>
+            <li>知道 <strong>z-fighting</strong> 從哪來（接第 5 課的深度精度）</li>
+            <li>看懂 Blending 通用公式：<strong>換 Blend Factor 就換效果</strong>（Alpha / Additive）</li>
+            <li>記得透明的兩個規矩：<strong>關深度寫入 + 從後往前畫</strong></li>
         </ul>
     </section>
 
@@ -38,60 +39,141 @@
         <h2>先看：近的為什麼會擋住遠的</h2>
         <figure>
             <img src="../../images/3dscene_depth.png" alt="場景的深度圖">
-            <figcaption>GPU 為每個像素記一個「離鏡頭多遠」的深度值。</figcaption>
+            <figcaption>GPU 為每個像素記一個「離鏡頭多遠」的深度值——這就是 Depth Buffer 的內容。</figcaption>
         </figure>
         <p>
-            Fragment Shader 算完顏色，還沒真的寫進畫面。最後這個 <span class="term">Output Merging</span> 階段，
-            GPU 會先做<span class="term">Depth test</span>（深度測試）。
+            Fragment Shader 算完顏色，還沒真的寫進畫面。最後的 <span class="term">Output Merging</span> 階段，
+            GPU 先做 <span class="term">Depth test</span>（深度測試），再決定寫不寫。
         </p>
     </section>
 
     <section>
         <h2>Depth test：比誰近</h2>
         <p>
-            每個片段都有深度（離鏡頭多遠）。要寫進畫面前，先跟 <span class="term">Depth Buffer</span>（Z-buffer）比：
-            <strong>比較近才畫上去，比較遠就丟掉</strong>（被前面的擋住了）。
-            不透明物體的遮擋關係，就這樣自動搞定，你不用管畫的順序。
+            每個片段帶著深度值（離鏡頭多遠）。寫入前，跟 <span class="term">Depth Buffer</span>（Z-buffer）裡<strong>已記錄的深度</strong>比：
         </p>
+        <pre><code>Depth Buffer 目前記錄：z = 0.7（先畫的、較遠的面）
+
+新片段 z = 0.3（較近）→ 比 0.7 近 → 顏色寫入，Depth Buffer 更新成 0.3
+新片段 z = 0.9（較遠）→ 比 0.7 遠 → 整個丟掉（被擋住）</code></pre>
+        <p>
+            不透明物體的遮擋就這樣自動搞定，<strong>跟繪製順序無關</strong>——先畫後畫，結果都對。
+        </p>
+        <div class="callout">
+            <strong>z-fighting：</strong>兩個面深度幾乎一樣時，精度不夠分不出誰近，畫面上兩面互相搶著閃爍。
+            第 5 課提過深度經過 ÷w 之後<strong>近處精度多、遠處精度少</strong>——所以 z-fighting 常發生在遠處，
+            而「near plane 別設太小」正是為了省下精度。
+        </div>
     </section>
 
     <section>
         <h2>Blending：透明是「混色」不是「覆蓋」</h2>
         <p>
-            不透明像素直接覆蓋。但透明像素要跟<strong>後面已經畫好的顏色混合</strong>，這叫 <span class="term">Blending</span>。最常見的 Alpha 混合：
+            不透明片段通過 depth test 後直接覆蓋。但透明片段要跟<strong>畫面上已有的顏色混合</strong>——
+            這就是第 6 課說 Fragment Shader 做不到、要交給這一階段的 <span class="term">Blending</span>。最常見的 Alpha 混合：
         </p>
-        <pre><code>最終色 = 來源色 × α  +  背景色 × (1 − α)      // α = 透明度 0~1</code></pre>
+        <pre><code>C_out = C_src × α + C_dst × (1 − α)
+// C_src = 新片段的顏色    C_dst = 畫面上已有的顏色    α = 透明度 0~1</code></pre>
         <figure>
             <img src="../../images/transparency_back2front_sorting.png" alt="透明物體從後往前排序繪製">
             <figcaption>透明物體要從後往前畫，混色順序才對。</figcaption>
         </figure>
         <div class="callout">
             透明的兩個坑（<strong>最常見的透明 bug 根因</strong>）：<br>
-            1. 透明物體要<strong>關掉深度寫入</strong>，否則會擋住後面該透出來的東西。<br>
-            2. 要<strong>從後往前排序</strong>畫，因為混色公式不可交換（先後不同、結果不同）。
+            1. 透明物體要<strong>關掉深度寫入</strong>，否則會擋掉後面該透出來的東西。<br>
+            2. 要<strong>從後往前排序</strong>畫——混色公式不可交換，先後不同、結果不同（引擎會排，但排序是 CPU 端的代價）。
         </div>
+
+        <h3>通用公式：換 Factor 就換效果</h3>
+        <p>其實 GPU 只認一條通用式，各種效果都是<strong>換兩個權重（Blend Factor）</strong>變出來的：</p>
+        <pre><code>C_out = C_src × F_src  +  C_dst × F_dst</code></pre>
+        <table class="glossary-table">
+            <thead><tr><th>效果</th><th>F_src</th><th>F_dst</th><th>結果</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td class="term">Alpha Blending</td>
+                    <td>α</td>
+                    <td><strong>1 − α</strong></td>
+                    <td>加權平均＝一般透明（玻璃、霧面）</td>
+                </tr>
+                <tr>
+                    <td class="term">Additive</td>
+                    <td>α（或 1）</td>
+                    <td><strong>1</strong></td>
+                    <td>直接疊上去，越疊越亮（火焰、粒子、雷射）</td>
+                </tr>
+            </tbody>
+        </table>
         <p>
-            換一組 <span class="term">Blend Factor</span> 就換一種效果：<strong>Alpha Blending</strong>（一般透明）、
-            <strong>Additive</strong>（發光，越疊越亮，火焰/粒子常用）。
+            兩者只差一個 <code>F_dst</code>：Alpha 用 <code>1−α</code> 是「跟背景<strong>分配比例</strong>」；
+            Additive 用 <code>1</code> 是「背景全保留、<strong>直接加</strong>」——所以會越疊越亮、逼近白色，黑色 (0,0,0) 疊了等於沒疊。
+            （還有 Screen / Multiply 等組合，完整參數見原始筆記。）
         </p>
     </section>
 
     <section>
+        <h2>不想付混色的代價？回到 discard</h2>
+        <p>
+            樹葉、鐵絲網這種「邊緣要嘛實心、要嘛全空」的東西，可以不走 Blending——
+            用第 6 課的 <code>discard</code>（Alpha Test）：alpha 太低的片段整個丟掉，剩下的當<strong>不透明</strong>畫。
+            不用排序、照常寫深度，代價是邊緣沒有漸變、可能鋸齒。
+        </p>
+        <div class="callout">
+            透明處理二選一：<strong>要漸變 → Blending</strong>（排序＋關深度寫入）；<strong>邊緣分明 → discard</strong>（省事但硬邊）。
+        </div>
+    </section>
+
+    <section>
         <h2>快速確認</h2>
+
         <div class="quiz">
-            <p class="quiz-prompt">透明物體疊起來顏色怪怪的，最可能是什麼沒做對？</p>
-            <div class="chip-pool" data-answer="繪製順序（後→前）" data-ok="對了！透明要從後往前排序畫，混色順序才正確。" data-no="想一下：混色公式和『先後』有關的那件事。">
-                <button class="chip">繪製順序（後→前）</button>
-                <button class="chip">貼圖 Filtering</button>
-                <button class="chip">頂點數量</button>
+            <p class="quiz-prompt">Q1　Depth Buffer 某像素目前記錄 <code>z = 0.5</code>。新來一個片段 <code>z = 0.8</code>（值越大越遠）。結果是？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="片段被丟掉——0.8 比 0.5 遠，被已畫的東西擋住"
+                 data-ok="對了！新片段比較遠 → 測試失敗 → 顏色不寫入、深度也不更新。"
+                 data-no="比大小：新片段 0.8、已記錄 0.5，哪個離鏡頭近？近的才留。">
+                <button class="chip">片段被丟掉——0.8 比 0.5 遠，被已畫的東西擋住</button>
+                <button class="chip">片段寫入，Depth Buffer 更新成 0.8</button>
+                <button class="chip">兩個顏色自動混合</button>
             </div>
             <p class="quiz-feedback"></p>
         </div>
+
         <div class="quiz">
-            <p class="quiz-prompt">「近的擋住遠的」是靠哪個 buffer？（中文或英文）</p>
-            <input type="text" class="quiz-input" id="recall-input" autocomplete="off" placeholder="一個詞">
-            <div class="quiz-actions"><button class="btn" id="check-recall">檢查</button></div>
-            <p class="quiz-feedback" id="recall-feedback"></p>
+            <p class="quiz-prompt">Q2　Alpha Blending 和 Additive 都套同一條 <code>C_out = C_src×F_src + C_dst×F_dst</code>。<br>兩者的差別主要在哪？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="F_dst：Alpha 用 1−α（分配比例），Additive 用 1（背景全留直接加亮）"
+                 data-ok="對了！換一個 factor 就從「透明混色」變「疊加發光」——這就是 Blend Factor 的威力。"
+                 data-no="對照那張表：兩列哪一欄不一樣？">
+                <button class="chip">F_dst：Alpha 用 1−α（分配比例），Additive 用 1（背景全留直接加亮）</button>
+                <button class="chip">用的公式完全不同，GPU 有兩套硬體</button>
+                <button class="chip">差在 Fragment Shader 要寫不同的 gl_FragColor</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">Q3　遠處兩個貼很近的面（例如地板和上面的貼花）互相搶著顯示、一閃一閃。最可能是？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="z-fighting——兩面深度太接近，遠處深度精度又少，分不出誰近"
+                 data-ok="對了！遠處精度少（÷w 的非線性），深度差太小就打架。解法方向：拉開兩面距離、near plane 別設太小。"
+                 data-no="症狀是「兩面輪流閃」——跟深度測試分不出勝負有關。">
+                <button class="chip">z-fighting——兩面深度太接近，遠處深度精度又少，分不出誰近</button>
+                <button class="chip">貼圖 Filtering 設錯</button>
+                <button class="chip">忘了 normalize 法線</button>
+                <button class="chip">Blend Factor 設錯</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">Q4　透明物體疊起來顏色怪怪的（有時對有時錯）。最可能是什麼沒做對？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="繪製順序——透明要從後往前畫，混色公式不可交換"
+                 data-ok="對了！混色先後不同、結果不同；順序沒排好，顏色就時對時錯。"
+                 data-no="想一下混色公式：C_src 和 C_dst 的角色能互換嗎？">
+                <button class="chip">繪製順序——透明要從後往前畫，混色公式不可交換</button>
+                <button class="chip">貼圖解析度不夠</button>
+                <button class="chip">頂點數量太多</button>
+                <button class="chip">Shininess 沒調</button>
+            </div>
+            <p class="quiz-feedback"></p>
         </div>
     </section>
 
@@ -121,7 +203,7 @@
     <section class="citation">
         <h2>原始資料 / 延伸閱讀</h2>
         <ul>
-            <li>Blending 改寫自 <a href="../../遊戲繪圖_05_Blending.md">遊戲繪圖_05_Blending.md</a>；Depth 取自 <a href="../../遊戲繪圖_01_GPU繪圖管線.md">遊戲繪圖_01</a> 的 Per-Fragment 段（<code>遊戲繪圖_10_Depth.md</code> 目前尚未撰寫）。</li>
+            <li>Blending 改寫自 <a href="../../遊戲繪圖_05_Blending.md">遊戲繪圖_05_Blending.md</a>（含通用公式與各效果完整參數）；Depth 取自 <a href="../../遊戲繪圖_01_GPU繪圖管線.md">遊戲繪圖_01</a> 的 Per-Fragment 段（<code>遊戲繪圖_10_Depth.md</code> 目前尚未撰寫）。</li>
             <li>推薦閱讀：<a href="https://learnopengl.com/Advanced-OpenGL/Depth-testing" target="_blank" rel="noopener">LearnOpenGL — Depth Testing</a> ／ <a href="https://learnopengl.com/Advanced-OpenGL/Blending" target="_blank" rel="noopener">Blending</a></li>
         </ul>
     </section>
@@ -137,19 +219,6 @@
 </main>
 
 <script>
-(function () {
-    var accepted = ['depth', 'depth buffer', 'z-buffer', 'zbuffer', '深度', '深度緩衝', 'z buffer'];
-    var input = document.getElementById('recall-input');
-    var fb = document.getElementById('recall-feedback');
-    function check() {
-        var v = input.value.trim().toLowerCase();
-        var ok = accepted.indexOf(v) !== -1;
-        fb.textContent = ok ? '對了！Depth Buffer（Z-buffer）。' : '提示：跟「深度 / 離鏡頭多遠」有關的緩衝區。';
-        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
-    }
-    document.getElementById('check-recall').addEventListener('click', check);
-    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { check(); } });
-})();
 document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
     var fb = pool.parentElement.querySelector('.quiz-feedback');
     pool.addEventListener('click', function (e) {

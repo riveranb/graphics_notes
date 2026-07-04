@@ -183,15 +183,15 @@ void main() {
         <h2>快速確認</h2>
 
         <div class="quiz">
-            <p class="quiz-prompt">Q1　表面法線 <code>N = (3, 4, 0)</code>（<strong>長度不是 1！</strong>），指向光源 <code>L = (0, 1, 0)</code>。<br>
-                <strong>先 normalize N</strong>，再算 Diffuse 的 <code>N·L</code> = ?</p>
-            <div class="chip-pool chip-pool--stack" data-answer="0.8　（|N|=5，normalize 後 (0.6, 0.8, 0)，再點積）"
-                 data-ok="對了！|N| = √(9+16) = 5，normalize 後 (0.6, 0.8, 0)，N·L = 0.8。"
-                 data-no="先算長度 |N| = √(3²+4²) = 5，N 每個分量除以 5，再做點積。">
-                <button class="chip">0.8　（|N|=5，normalize 後 (0.6, 0.8, 0)，再點積）</button>
-                <button class="chip">4　（直接 (3,4,0)·(0,1,0) —— 但這忘了 normalize）</button>
-                <button class="chip">5</button>
-                <button class="chip">7</button>
+            <p class="quiz-prompt">Q1　表面法線 <code>N = (0.6, 0.8, 0)</code>，指向光源 <code>L = (0, 1, 0)</code>。<br>
+                Diffuse 的 <code>N·L</code> = ?</p>
+            <div class="chip-pool chip-pool--stack" data-answer="0.8"
+                 data-ok="對了！N·L = 0.6×0 + 0.8×1 + 0×0 = 0.8。"
+                 data-no="點積 = 對應分量相乘再相加：0.6×0 + 0.8×1 + 0×0。">
+                <button class="chip">0.8</button>
+                <button class="chip">1.4</button>
+                <button class="chip">0.6</button>
+                <button class="chip">0</button>
             </div>
             <p class="quiz-feedback"></p>
         </div>

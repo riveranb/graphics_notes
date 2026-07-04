@@ -242,7 +242,8 @@ RGBA 每 channel 1 byte → 每個 Texel 4 bytes：
         <p class="lesson-meta">屬性名稱與選項依 Cocos Creator 3.8 官方文件（見文末連結）。</p>
         <div class="callout">
             <strong>一句 debug 直覺：</strong>貼圖鋸齒/糊 → Filter Mode；接縫/重複怪 → Wrap Mode 或 UV；
-            遠處閃爍 → 沒開 Mipmap；斜視角糊掉 → 調 Anisotropy。
+            遠處閃爍 → 沒開 Mipmap；斜視角糊掉 → 調 Anisotropy；
+            表面變<strong>雜訊亂色</strong>（或全黑）→ Filter 設了要用 Mipmap 取樣，但 <strong>Mipmap 層級沒真的生成/上傳</strong>——GPU 讀到未初始化的顯存。
         </div>
     </section>
 

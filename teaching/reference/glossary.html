@@ -74,6 +74,9 @@
             <tr><td class="term">Lighting</td><td>光照</td><td>用數學模型算每個表面點的明暗/顏色。</td><td>L8</td></tr>
             <tr><td class="term">Ambient / Diffuse / Specular</td><td>環境光 / 漫反射 / 高光</td><td>Phong 光照的三個分量：基礎亮度 / 正對光較亮 / 光滑表面亮點。</td><td>L8</td></tr>
             <tr><td class="term">Phong</td><td>Phong 光照模型</td><td>Ambient + Diffuse + Specular 三分量相加。</td><td>L8</td></tr>
+            <tr><td class="term">N·L (Lambert)</td><td>法線·光向點積</td><td>Diffuse 核心：表面法線與指向光源方向的點積＝有多正對光；背光 max(…,0) 夾成 0。</td><td>L8</td></tr>
+            <tr><td class="term">Shininess</td><td>光澤度</td><td>Specular 指數 n：越大高光越小越集中，表面看起來越光滑。</td><td>L8</td></tr>
+            <tr><td class="term">Blinn-Phong</td><td>Blinn-Phong 模型</td><td>Phong 改良版，高光改用半程向量算，更省更自然；引擎多用它。</td><td>L8</td></tr>
             <tr><td class="term">Directional / Point / Spot</td><td>平行光 / 點光 / 聚光</td><td>三種基礎光源：太陽 / 燈泡（會衰減）/ 手電筒（錐形）。</td><td>L8</td></tr>
             <tr><td class="term">Depth Test</td><td>深度測試</td><td>比較片段深度，近的才畫、遠的丟掉，自動解決遮擋。</td><td>L9</td></tr>
             <tr><td class="term">Depth Buffer (Z-buffer)</td><td>深度緩衝</td><td>存每個像素「離鏡頭多遠」的緩衝區。</td><td>L9</td></tr>

@@ -13,7 +13,7 @@
 </nav>
 <main>
     <header class="lesson-header">
-        <p class="lesson-meta">Lesson 0008 · 約 9 分鐘 · 數學只講直覺</p>
+        <p class="lesson-meta">Lesson 0008 · 約 15 分鐘 · 數學只到點積</p>
         <h1>Lighting：讓平面的東西「立體」起來</h1>
     </header>
 
@@ -28,69 +28,170 @@
     <section class="callout callout--win">
         <strong>這堂課結束後，你會：</strong>
         <ul>
-            <li>知道光照 = 用簡單數學算「每個點多亮」</li>
-            <li>記得 Phong 三分量：<strong>Ambient + Diffuse + Specular</strong></li>
-            <li>懂 Diffuse 為什麼需要頂點 <strong>Normal</strong>（呼應第 2 課）</li>
+            <li>知道光照 = 在 Fragment Shader 裡<strong>逐片段算亮度</strong></li>
+            <li>會算 <strong>Diffuse 的 N·L</strong>（Lambert）：表面朝向對上光方向的點積</li>
+            <li>記得 <strong>Phong = Ambient + Diffuse + Specular</strong>，並懂 Shininess 控制高光大小</li>
+            <li>認得三種光源：<strong>Directional / Point / Spot</strong></li>
         </ul>
     </section>
 
     <section>
-        <h2>先看：有光才立體</h2>
+        <h2>先看：光拆成三塊相加</h2>
         <figure>
-            <img src="../../images/lighting_phong_basic.png" alt="Phong 光照三分量">
-            <figcaption>同一顆球，加了光照才有立體感。</figcaption>
+            <img src="../../images/lighting_phong_basic.png" alt="Phong 三分量：ambient / diffuse / specular / combined">
+            <figcaption>同一顆方塊：Ambient（基礎亮度）＋ Diffuse（正對光較亮）＋ Specular（高光）＝ Phong 的成品。</figcaption>
         </figure>
         <p>
-            <span class="term">Lighting</span>（光照）就是在 Fragment Shader 裡，替每個像素算一個亮度/顏色，
-            模擬光打在表面上的效果。最經典的做法把光拆成三塊相加。
+            <span class="term">Lighting</span>（光照）就是在 Fragment Shader 裡，替<strong>每個片段</strong>算一個亮度/顏色，模擬光打在表面的效果。
+            最經典的 <span class="term">Phong</span> 模型把它拆成三塊、各自算完相加：
         </p>
+        <pre><code>I = Ambient + Diffuse + Specular</code></pre>
     </section>
 
     <section>
-        <h2>Phong 三分量</h2>
-        <ul>
-            <li><span class="term">Ambient</span>（環境光）— 整體基礎亮度，避免暗處全黑。</li>
-            <li><span class="term">Diffuse</span>（漫反射）— <strong>越正對光的表面越亮</strong>。這是塑造立體感的主力。</li>
-            <li><span class="term">Specular</span>（鏡面高光）— 光滑表面上的<strong>亮點</strong>，只在特定視角看得到。</li>
-        </ul>
+        <h2>① Ambient：基礎亮度</h2>
+        <p>最簡單的一塊：一個不管方向、均勻打在所有表面的底光，避免背光處全黑到看不見。</p>
+        <pre><code>I_ambient = ka × Ia      // ka 材質係數、Ia 環境光顏色</code></pre>
+    </section>
+
+    <section>
+        <h2>② Diffuse：正對光越亮（Lambert）</h2>
         <figure>
             <img src="../../images/lighting_diffuse.png" alt="漫反射：正對光的面較亮">
-            <figcaption>Diffuse：表面越正對光源，越亮。</figcaption>
+            <figcaption>Diffuse：表面越正對光源，越亮。這是塑造立體感的主力。</figcaption>
         </figure>
-        <div class="callout">
-            <span class="term">Phong</span> = Ambient + Diffuse + Specular，三個加起來。
-            Diffuse 的直覺就一句：<strong>「表面朝向」對上「光的方向」越正，越亮</strong> —— 所以它需要每個頂點的
-            <span class="term">Normal</span>（法線）。這就是第 2 課那個屬性的用途。
-            （實際公式 <code>N·L</code> 等細節是可選的，想看在 <a href="../../遊戲繪圖_06_Lighting.md">遊戲繪圖_06</a>。）
+        <p>塑造立體感的主力。它要兩個<strong>單位向量</strong>（長度 1、只代表方向）：</p>
+        <ul>
+            <li><strong>N</strong> — 表面法線（第 2 課的 Normal），表面朝哪。</li>
+            <li><strong>L</strong> — 從表面<strong>指向光源</strong>的方向。</li>
+        </ul>
+        <p>
+            兩個向量「有多同方向」，用<strong>點積（dot product）</strong>量：
+            <code>(a,b,c)·(x,y,z) = ax + by + cz</code>。
+            單位向量點積的結果剛好是：<strong>同方向 = 1、垂直 = 0、反方向 = −1</strong>——正好就是「有多正對光」的分數。
+        </p>
+        <pre><code>I_diffuse = kd × Il × max(N·L, 0)</code></pre>
+        <p>那個 <code>max(…, 0)</code> 就是第 6 課的 clamp：<strong>背對光的地方 N·L 是負的，夾成 0</strong>——不會有負的亮度。帶數字看：</p>
+        <pre><code>N = (0,1,0) 朝上   L = (0,1,0) 光從正上方
+N·L = 0·0 + 1·1 + 0·0 = 1      → 最亮
+
+N = (1,0,0) 朝右   L = (0,1,0) 光從上
+N·L = 1·0 + 0·1 + 0·0 = 0      → 沒有 diffuse（只剩 ambient）</code></pre>
+        <figure class="shader-demo">
+            <canvas data-frag="precision mediump float;
+uniform float uTime;
+varying vec2 vUv;
+void main() {
+    vec2 p = vUv * 2.0 - 1.0;
+    float r2 = dot(p, p);
+    if (r2 &gt; 1.0) { discard; }              // 圓外不畫，做成一顆球
+    vec3 N = vec3(p, sqrt(1.0 - r2));        // 假球面的法線
+    vec3 L = normalize(vec3(cos(uTime), 0.3, sin(uTime)));  // 繞圈的光方向
+    float diff = max(dot(N, L), 0.0);        // Lambert：N·L，背光夾成 0
+    vec3 base = vec3(0.85, 0.45, 0.25);
+    gl_FragColor = vec4(base * diff, 1.0);
+}"></canvas>
+            <figcaption>即時預覽（純 Diffuse）：光繞著球轉，正對光的半面亮、背光的半面全黑——這就是 N·L。</figcaption>
+        </figure>
+    </section>
+
+    <section>
+        <h2>③ Specular：光滑表面的高光</h2>
+        <figure>
+            <img src="../../images/lighting_specular_shininess.png" alt="不同 Shininess 的高光大小">
+            <figcaption>Shininess n 從 2 到 256：<strong>n 越大，高光越小越集中</strong>（表面看起來越光滑）。</figcaption>
+        </figure>
+        <p>只在特定視角看得到的<strong>亮點</strong>，讓表面有光澤。它多用一個向量 <strong>V</strong>（表面指向視點）：</p>
+        <pre><code>I_specular = ks × Il × max(R·V, 0)ⁿ    // R = 光的反射方向、n = Shininess</code></pre>
+        <p>
+            <code>n</code>（<span class="term">Shininess</span>，光澤度）是「亮點多集中」的旋鈕：
+            n 小 → 一大片朦朧亮區（霧面）；n 大 → 一個小而銳利的亮點（金屬、塑膠）。
+        </p>
+        <div class="callout callout--ask">
+            現代引擎（Cocos / Unity 內建）多用 <span class="term">Blinn-Phong</span>——概念一樣三塊相加，只是高光改用「半程向量」算，更省也更自然。名字認得就好，不展開。
         </div>
+        <figure class="shader-demo">
+            <canvas data-frag="precision mediump float;
+uniform float uTime;
+varying vec2 vUv;
+void main() {
+    vec2 p = vUv * 2.0 - 1.0;
+    float r2 = dot(p, p);
+    if (r2 &gt; 1.0) { discard; }
+    vec3 N = vec3(p, sqrt(1.0 - r2));
+    vec3 L = normalize(vec3(cos(uTime), 0.3, sin(uTime)));
+    vec3 V = vec3(0.0, 0.0, 1.0);            // 視線朝我們
+    float diff = max(dot(N, L), 0.0);
+    vec3 R = reflect(-L, N);
+    float spec = pow(max(dot(R, V), 0.0), 32.0);   // Shininess n = 32
+    vec3 base = vec3(0.85, 0.45, 0.25);
+    vec3 color = base * 0.12       // Ambient
+               + base * diff       // Diffuse
+               + vec3(1.0) * spec; // Specular 高光
+    gl_FragColor = vec4(color, 1.0);
+}"></canvas>
+            <figcaption>即時預覽（完整 Phong）：暗面不再全黑（Ambient）、亮面漸層（Diffuse）、還多了一顆會滑動的白亮點（Specular）。</figcaption>
+        </figure>
     </section>
 
     <section>
         <h2>光源類型（一句話認得）</h2>
-        <ul>
-            <li><span class="term">Directional</span> — 太陽：方向固定、不衰減。</li>
-            <li><span class="term">Point</span> — 燈泡：從一點發散，<strong>離越遠越暗</strong>（衰減）。</li>
-            <li><span class="term">Spot</span> — 手電筒：錐形，有方向也有角度。</li>
-        </ul>
+        <div class="two-col">
+            <figure>
+                <img src="../../images/light_directional.png" alt="平行光">
+                <figcaption><strong>Directional</strong>：太陽。方向固定、不衰減。</figcaption>
+            </figure>
+            <figure>
+                <img src="../../images/light_point.png" alt="點光源">
+                <figcaption><strong>Point</strong>：燈泡。從一點發散，<strong>離越遠越暗</strong>（衰減）。</figcaption>
+            </figure>
+            <figure>
+                <img src="../../images/light_spotlight.png" alt="聚光燈">
+                <figcaption><strong>Spot</strong>：手電筒。錐形，有方向也有角度。</figcaption>
+            </figure>
+        </div>
+        <p>三者差在「光從哪來、怎麼衰減」——但每個片段的算法核心都一樣：湊出 N、L、V，套上面那三塊公式。</p>
     </section>
 
     <section>
         <h2>快速確認</h2>
+
         <div class="quiz">
-            <p class="quiz-prompt">「正對光的那面比較亮」是哪個分量？</p>
-            <div class="chip-pool" data-answer="Diffuse" data-ok="對了！Diffuse（漫反射）—— 靠 Normal 對上光向算亮度。" data-no="想一下：塑造整體明暗、靠表面朝向的那個。">
-                <button class="chip">Ambient</button>
-                <button class="chip">Diffuse</button>
-                <button class="chip">Specular</button>
+            <p class="quiz-prompt">Q1　表面法線 <code>N = (0.6, 0.8, 0)</code>，指向光源 <code>L = (0, 1, 0)</code>。<br>
+                Diffuse 的 <code>N·L</code> = ?</p>
+            <div class="chip-pool chip-pool--stack" data-answer="0.8"
+                 data-ok="對了！N·L = 0.6×0 + 0.8×1 + 0×0 = 0.8。"
+                 data-no="點積 = 對應分量相乘再相加：0.6×0 + 0.8×1 + 0×0。">
+                <button class="chip">0.8</button>
+                <button class="chip">1.4</button>
+                <button class="chip">0.6</button>
+                <button class="chip">0</button>
             </div>
             <p class="quiz-feedback"></p>
         </div>
+
         <div class="quiz">
-            <p class="quiz-prompt">光滑表面上的「亮點高光」是哪個分量？</p>
-            <div class="chip-pool" data-answer="Specular" data-ok="對了！Specular（鏡面高光）。" data-no="想一下：只在特定視角看到的那個亮點。">
-                <button class="chip">Ambient</button>
-                <button class="chip">Diffuse</button>
-                <button class="chip">Specular</button>
+            <p class="quiz-prompt">Q2　把 Specular 的 <strong>Shininess n 調大</strong>，高光會怎麼變？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="變小、變集中、變銳利（表面看起來更光滑）"
+                 data-ok="對了！n 越大高光越小越集中，像金屬/塑膠的銳利亮點。"
+                 data-no="看那張 2→256 的對比圖：數字越大，亮點是變大還是變小？">
+                <button class="chip">變小、變集中、變銳利（表面看起來更光滑）</button>
+                <button class="chip">變大、變朦朧、鋪滿整面</button>
+                <button class="chip">不影響高光，只影響顏色</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">Q3　光從正上方照下，指向光源 <code>L = (0, 1, 0)</code>。有個表面<strong>背對光</strong>、法線朝下 <code>N = (0, −1, 0)</code>。<br>
+                它的 Diffuse 亮度是多少？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="0 —— N·L = −1，被 max(…,0) 夾成 0，只剩 Ambient"
+                 data-ok="對了！N·L = −1，max(−1, 0) = 0 → 沒有 Diffuse，這面只靠 Ambient 撐著不全黑。"
+                 data-no="先算 N·L = 0×0 + (−1)×1 + 0×0 = −1，再想 max(−1, 0) 會變成？">
+                <button class="chip">0 —— N·L = −1，被 max(…,0) 夾成 0，只剩 Ambient</button>
+                <button class="chip">−1 —— 直接是負的亮度</button>
+                <button class="chip">1 —— 背對光其實最亮</button>
+                <button class="chip">0.5</button>
             </div>
             <p class="quiz-feedback"></p>
         </div>
@@ -99,13 +200,13 @@
     <section class="citation">
         <h2>原始資料 / 延伸閱讀</h2>
         <ul>
-            <li>本課改寫自 <a href="../../遊戲繪圖_06_Lighting.md">遊戲繪圖_06_Lighting.md</a></li>
+            <li>本課改寫自 <a href="../../遊戲繪圖_06_Lighting.md">遊戲繪圖_06_Lighting.md</a>（含 N·L、R·V、Blinn-Phong 完整公式）</li>
             <li>推薦閱讀：<a href="https://learnopengl.com/Lighting/Basic-Lighting" target="_blank" rel="noopener">LearnOpenGL — Basic Lighting</a></li>
         </ul>
     </section>
 
     <section class="callout callout--ask">
-        <p>想看 N·L 到底怎麼算，或調光照參數看效果？問你的教學 agent（<code>/teach</code>）。</p>
+        <p>想調光照參數看效果、或看 Blinn-Phong 半程向量怎麼算？問你的教學 agent（<code>/teach</code>）。</p>
     </section>
 
     <nav class="lesson-nav lesson-nav--bottom">
@@ -114,6 +215,7 @@
     </nav>
 </main>
 
+<script src="../assets/shader-preview.js"></script>
 <script>
 document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
     var fb = pool.parentElement.querySelector('.quiz-feedback');

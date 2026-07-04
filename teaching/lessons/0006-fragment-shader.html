@@ -111,8 +111,12 @@ void main() {
                 在 Rasterization 被<strong>內插</strong>過的資料。到手的不是某個頂點的原值，是「按位置混合過」的值（第 5 課的 lerp）。
             </li>
             <li><span class="term">uniform</span> — <strong>輸入</strong>：全域值。貼圖 <code>sampler2D</code>、時間、光照參數都走這。</li>
-            <li><span class="term">gl_FragCoord</span> — <strong>內建輸入</strong>：這個片段在螢幕上的像素座標（偶爾用到，知道有就好）。</li>
-            <li><span class="term">gl_FragColor</span> — <strong>輸出</strong>：這個片段的最終顏色 <code>(r,g,b,a)</code>，每個分量 0～1。</li>
+            <li><span class="term">gl_FragCoord</span> — <strong>唯讀（read-only）內建輸入</strong>：這個片段在螢幕上的像素座標 <code>(x, y)</code>。你只能<strong>讀</strong>它、不能寫。</li>
+            <li>
+                <span class="term">gl_FragColor</span> — <strong>輸出</strong>：這個片段的最終顏色 <code>(r,g,b,a)</code>。
+                <strong>GPU 的顏色預設有效值域是 [0, 1]</strong>：大於 1 當成 1、小於 0 當成 0（會被<em>夾住 / clamp</em>）。
+                所以 ③ 的 <code>sin()</code> 負值會被夾成全黑，才需要 <code>×0.5 + 0.5</code> 先搬進 [0, 1]。
+            </li>
         </ul>
     </section>
 
@@ -203,6 +207,11 @@ void main() {
             一個 1920×1080 的畫面約有 <strong>200 萬個像素</strong>；而一個普通模型可能只有<strong>幾千個頂點</strong>。
             也就是說 fragment shader 的執行次數，動輒是 vertex shader 的<strong>幾百到幾千倍</strong>——
             同一行浪費的程式碼，在這裡的代價放大幾個數量級。效能問題常出在這支，就是這個原因。
+        </p>
+        <p>
+            還有一個硬體細節：GPU <strong>不是一次跑一個 pixel，而是以 2×2 一組（一個 quad）為最小單位一起跑</strong>。
+            後果是——就算三角形邊緣只蓋到 1 個 pixel，那整組 2×2 還是會<strong>跑滿四份</strong>（另外三份算完就丟）。
+            所以<strong>又多又小的三角形</strong>（過度細分）在邊緣會有大量這種浪費，比想像中更吃效能。
         </p>
     </section>
 

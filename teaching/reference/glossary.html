@@ -58,8 +58,8 @@
             <tr><td class="term">Back Face Culling</td><td>背面剔除</td><td>背對相機的三角形面丟掉不畫。</td><td>L5</td></tr>
             <tr><td class="term">Clipping</td><td>裁剪</td><td>跨出視野邊界的三角形，切掉超出的部分。</td><td>L5</td></tr>
             <tr><td class="term">Fragment Shader</td><td>片段著色器</td><td>每個片段跑一次，算出最終像素顏色。</td><td>L1 / L6</td></tr>
-            <tr><td class="term">gl_FragColor</td><td>—</td><td>Fragment Shader 輸出：片段的最終顏色 (r,g,b,a)。</td><td>L6</td></tr>
-            <tr><td class="term">gl_FragCoord</td><td>—</td><td>Fragment Shader 內建輸入：片段在螢幕上的像素座標。</td><td>L6</td></tr>
+            <tr><td class="term">gl_FragColor</td><td>—</td><td>Fragment Shader 輸出：片段的最終顏色 (r,g,b,a)；預設值域夾在 [0,1]。</td><td>L6</td></tr>
+            <tr><td class="term">gl_FragCoord</td><td>—</td><td>Fragment Shader 唯讀內建輸入：片段在螢幕上的像素座標 (x,y)。</td><td>L6</td></tr>
             <tr><td class="term">sampler2D</td><td>貼圖採樣器</td><td>Fragment Shader 用來讀取一張貼圖的 uniform 型別。</td><td>L6 / L7</td></tr>
             <tr><td class="term">Texture</td><td>貼圖</td><td>貼到模型表面的 2D 圖像。</td><td>L7</td></tr>
             <tr><td class="term">Texture Mapping</td><td>貼圖映射</td><td>用 UV 把 2D 貼圖對應到 3D 表面。</td><td>L7</td></tr>

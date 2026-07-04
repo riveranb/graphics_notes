@@ -43,15 +43,15 @@
             <figcaption>同一顆方塊：Ambient（基礎亮度）＋ Diffuse（正對光較亮）＋ Specular（高光）＝ Phong 的成品。</figcaption>
         </figure>
         <p>
-            <span class="term">Lighting</span>（光照）就是在 Fragment Shader 裡，替<strong>每個片段</strong>算一個亮度/顏色，模擬光打在表面的效果。
-            最經典的 <span class="term">Phong</span> 模型把它拆成三塊、各自算完相加：
+            <span class="term">Lighting</span>（光照）就是在 Fragment Shader 裡，替<strong>每個片段</strong>算出打光後的顏色。
+            最經典的 <span class="term">Phong</span> 模型把它拆成三塊、算完相加：
         </p>
         <pre><code>I = Ambient + Diffuse + Specular</code></pre>
     </section>
 
     <section>
         <h2>① Ambient：基礎亮度</h2>
-        <p>最簡單的一塊：一個不管方向、均勻打在所有表面的底光，避免背光處全黑到看不見。</p>
+        <p>最簡單的一塊：不管方向、均勻打在所有表面的底光，避免背光處全黑。</p>
         <pre><code>I_ambient = ka × Ia      // ka 材質係數、Ia 環境光顏色</code></pre>
     </section>
 
@@ -69,20 +69,17 @@
         <p>
             兩個向量「有多同方向」，用<strong>點積（dot product）</strong>量：
             <code>(a,b,c)·(x,y,z) = ax + by + cz</code>。
-            單位向量點積的結果剛好是：<strong>同方向 = 1、垂直 = 0、反方向 = −1</strong>——正好就是「有多正對光」的分數。
+            單位向量點積：<strong>同方向 = 1、垂直 = 0、反方向 = −1</strong>——就是「有多正對光」的分數。
         </p>
         <pre><code>I_diffuse = kd × Il × max(N·L, 0)</code></pre>
-        <p>那個 <code>max(…, 0)</code> 就是第 6 課的 clamp：<strong>背對光的地方 N·L 是負的，夾成 0</strong>——不會有負的亮度。帶數字看：</p>
+        <p><code>max(…, 0)</code> 就是第 6 課的 clamp：<strong>背對光的地方 N·L 是負的，夾成 0</strong>。帶數字看：</p>
         <pre><code>N = (0,1,0) 朝上   L = (0,1,0) 光從正上方
 N·L = 0·0 + 1·1 + 0·0 = 1      → 最亮
 
 N = (1,0,0) 朝右   L = (0,1,0) 光從上
 N·L = 1·0 + 0·1 + 0·0 = 0      → 沒有 diffuse（只剩 ambient）</code></pre>
 
-        <p>
-            前提：<code>N·L</code> 要準，<strong>N、L 都得先 normalize（正規化成長度 1）</strong>再做點積——
-            算光照前固定先來這一手：
-        </p>
+        <p><code>N·L</code> 要準，<strong>N、L 都得先 normalize（正規化成長度 1）</strong>再做點積：</p>
         <pre><code>vec3 N = normalize(vNormal);
 vec3 L = normalize(lightDir);
 float diff = max(dot(N, L), 0.0);</code></pre>
@@ -113,7 +110,7 @@ void main() {
         </figure>
         <p>只在特定視角看得到的<strong>亮點</strong>，讓表面有光澤。它多用一個向量 <strong>V</strong>（表面指向視點）：</p>
         <pre><code>I_specular = ks × Il × max(R·V, 0)ⁿ    // R = 光的反射方向、n = Shininess</code></pre>
-        <p>跟 Diffuse 同一條規矩：<strong>R、V 一樣要先 normalize</strong>——所有進點積的方向向量都得是單位向量。</p>
+        <p><strong>R、V 同樣先 normalize</strong>——跟 Diffuse 一條規矩。</p>
         <p>
             <code>n</code>（<span class="term">Shininess</span>，光澤度）是「亮點多集中」的旋鈕：
             n 小 → 一大片朦朧亮區（霧面）；n 大 → 一個小而銳利的亮點（金屬、塑膠）。
@@ -183,8 +180,8 @@ void main() {
     <section>
         <h2>整合示範：帶入光色，算出最終顏色</h2>
         <p>
-            把前面三塊真的湊成一支完整 shader，並帶入<strong>光的顏色</strong>（公式裡的 <code>Il</code>）——
-            最終顏色就是<strong>材質色被光色調變</strong>的結果。下面是完整、可跑的一支：
+            把前面三塊湊成一支完整 shader，並帶入<strong>光的顏色</strong>（公式裡的 <code>Il</code>）——
+            最終顏色就是<strong>材質色被光色調變</strong>的結果：
         </p>
         <pre><code>vec3 N = normalize(vNormal);
 vec3 L = normalize(lightDir);        // 指向光源

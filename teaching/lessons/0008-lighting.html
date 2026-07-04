@@ -32,6 +32,7 @@
             <li>會算 <strong>Diffuse 的 N·L</strong>（Lambert）：表面朝向對上光方向的點積，並知道 <strong>N、L 要先 normalize</strong></li>
             <li>記得 <strong>Phong = Ambient + Diffuse + Specular</strong>，並懂 Shininess 控制高光大小</li>
             <li>認得三種光源：<strong>Directional / Point / Spot</strong></li>
+            <li>看得懂一支完整光照 shader：三塊 × <strong>光色</strong> → 最終顏色</li>
         </ul>
     </section>
 
@@ -177,6 +178,54 @@ void main() {
 // θ = 片段方向與聚光中心方向的夾角，結果夾在 [0,1]</code></pre>
 
         <p>三者差在「光從哪來、怎麼衰減」——但每個片段的核心算法一樣：湊出 N、L、V，套前面那三塊公式。</p>
+    </section>
+
+    <section>
+        <h2>整合示範：帶入光色，算出最終顏色</h2>
+        <p>
+            把前面三塊真的湊成一支完整 shader，並帶入<strong>光的顏色</strong>（公式裡的 <code>Il</code>）——
+            最終顏色就是<strong>材質色被光色調變</strong>的結果。下面是完整、可跑的一支：
+        </p>
+        <pre><code>vec3 N = normalize(vNormal);
+vec3 L = normalize(lightDir);        // 指向光源
+vec3 V = normalize(viewDir);         // 指向視點
+
+vec3 matColor   = vec3(0.55, 0.55, 0.60);   // 材質基本色（偏灰）
+vec3 lightColor = vec3(1.0, 0.8, 0.5);      // 光的顏色（暖橘）
+
+// 三塊，各自乘上光色
+vec3 ambient  = 0.15 * lightColor;
+float d = max(dot(N, L), 0.0);
+vec3 diffuse  = d * lightColor;
+vec3 R = reflect(-L, N);
+float s = pow(max(dot(R, V), 0.0), 32.0);
+vec3 specular = s * lightColor;
+
+// 最終顏色 = 材質色 ×（環境 + 漫反射）+ 高光
+gl_FragColor = vec4(matColor * (ambient + diffuse) + specular, 1.0);</code></pre>
+        <figure class="shader-demo shader-demo--square">
+            <canvas data-frag="precision mediump float;
+uniform float uTime;
+varying vec2 vUv;
+void main() {
+    vec2 p = vUv * 2.0 - 1.0;
+    float r2 = dot(p, p);
+    if (r2 &gt; 1.0) { discard; }
+    vec3 N = vec3(p, sqrt(1.0 - r2));
+    vec3 L = normalize(vec3(cos(uTime), 0.3, sin(uTime)));
+    vec3 V = vec3(0.0, 0.0, 1.0);
+    vec3 matColor   = vec3(0.55, 0.55, 0.60);   // 偏灰材質
+    vec3 lightColor = vec3(1.0, 0.8, 0.5);      // 暖橘光色
+    vec3 ambient  = 0.15 * lightColor;
+    float d = max(dot(N, L), 0.0);
+    vec3 diffuse  = d * lightColor;
+    vec3 R = reflect(-L, N);
+    float s = pow(max(dot(R, V), 0.0), 32.0);
+    vec3 specular = s * lightColor;
+    gl_FragColor = vec4(matColor * (ambient + diffuse) + specular, 1.0);
+}"></canvas>
+            <figcaption>即時預覽：偏灰的材質被暖橘光色一照，整顆球偏暖——這就是「材質色 × 光色」算出的最終光照顏色。</figcaption>
+        </figure>
     </section>
 
     <section>

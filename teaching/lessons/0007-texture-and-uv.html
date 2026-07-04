@@ -29,6 +29,7 @@
         <strong>這堂課結束後，你會：</strong>
         <ul>
             <li>知道 Texture 靠 <strong>UV</strong> 對位，採樣（sampling）就是「用 UV 去圖上取一個 Texel」</li>
+            <li>知道貼圖是 <strong>CPU 上傳進 GPU</strong> 的，<code>sampler2D</code> 只是它在 shader 裡的把手</li>
             <li>分得清兩個基本設定：<strong>Filter Mode</strong>（放大怎麼取色）與 <strong>Wrap Mode</strong>（UV 超界怎麼辦）</li>
             <li>知道 <strong>Mipmap</strong>（遠處換小圖）與 <strong>Anisotropic</strong>（斜視角救星）各解決什麼</li>
             <li>會在 <strong>Cocos texture 面板</strong>把上面這些真的設定好</li>
@@ -73,6 +74,24 @@
             所以同一組 UV，貼在解析度不同的圖上，取到的是「同一個相對位置」。真正麻煩的是：
             UV 內插後<strong>常常不會剛好落在某個 Texel 正中央</strong>，甚至超出 0～1——這就要靠下面兩個設定決定怎麼辦。
         </p>
+    </section>
+
+    <section>
+        <h2>sampler2D 從哪來：CPU 上傳、GPU 收圖</h2>
+        <p>
+            第 6 課的 shader 裡有一行 <code>uniform sampler2D diffuseMap;</code>——這張圖到底是怎麼進到 GPU 的？
+            跟第 2 課的頂點資料同一套路，都是 <strong>CPU 在 Application 階段先準備好</strong>：
+        </p>
+        <ol>
+            <li><strong>CPU 讀圖檔</strong>（PNG / JPG…），解碼成原始像素。</li>
+            <li><strong>上傳到 GPU 顯存</strong>，成為一個「貼圖物件」——之後每幀直接用，不再重讀檔。</li>
+            <li>這節課講的 <strong>Filter / Wrap / Mipmap 設定，就掛在這個貼圖物件上</strong>。</li>
+            <li>繪製時把貼圖物件<strong>綁定</strong>給 shader——<code>sampler2D</code> 就是它在 shader 裡的「把手」，<code>texture2D()</code> 靠這個把手取色。</li>
+        </ol>
+        <div class="callout">
+            所以 <code>sampler2D</code> <strong>不是圖檔路徑、也不是圖的內容</strong>——它是「一張已經住在顯存裡的貼圖」的把手。
+            貼圖沒出來時值得先問：這張圖<strong>真的有被上傳並綁定嗎</strong>？還是 shader 拿到的是一個空把手？
+        </div>
     </section>
 
     <section>

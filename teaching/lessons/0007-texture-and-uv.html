@@ -72,15 +72,15 @@
             </tbody>
         </table>
         <p>
-            而圖檔（PNG / JPG）的像素是<strong>從上往下</strong>存的——跟 OpenGL 的方向剛好相反。
-            引擎載圖時通常已幫你對齊，所以平常沒感覺；但哪天你自己載圖、或跨 API 移植，
-            觀察到<strong>貼圖上下顛倒</strong>（左右、顏色都正常），<strong>可能就是這個原因</strong>。
+            而圖檔（PNG / JPG）的像素<strong>從上往下</strong>存——跟 OpenGL 相反。
+            引擎載圖時通常已對齊，平常無感；自己載圖或跨 API 移植時，
+            看到<strong>貼圖上下顛倒</strong>（左右、顏色正常），<strong>可能就是這個原因</strong>。
         </p>
-        <p>要驗證的話，可以<strong>暫時</strong>在 shader 翻轉 V 看看是不是它：</p>
+        <p>驗證方式：<strong>暫時</strong>在 shader 翻轉 V：</p>
         <pre><code>uv.y = 1.0 - uv.y;   // 暫時翻轉 V，只用來驗證原因</code></pre>
         <div class="callout callout--ask">
-            <strong>注意：這行是診斷用，不是修法。</strong>確認原因後，應該回到<strong>載圖／資產處理那一層</strong>把方向對齊。
-            把翻轉留在 shader 裡是危險的 hack——同一支 shader 拿去畫方向正常的貼圖，就換那張反過來壞掉。
+            <strong>這行是診斷，不是修法。</strong>確認後回<strong>載圖／資產層</strong>把方向對齊。
+            翻轉留在 shader 是 hack——同一支 shader 畫到方向正常的貼圖，就換那張反過來壞。
         </div>
     </section>
 
@@ -102,8 +102,8 @@
     <section>
         <h2>sampler2D 從哪來：CPU 上傳、GPU 收圖</h2>
         <p>
-            第 6 課的 shader 裡有一行 <code>uniform sampler2D diffuseMap;</code>——這張圖到底是怎麼進到 GPU 的？
-            跟第 2 課的頂點資料同一套路，都是 <strong>CPU 在 Application 階段先準備好</strong>：
+            第 6 課 shader 裡那行 <code>uniform sampler2D diffuseMap;</code>——圖是怎麼進 GPU 的？
+            跟第 2 課頂點資料同一套路：<strong>CPU 在 Application 階段先準備好</strong>：
         </p>
         <ol>
             <li><strong>CPU 讀圖檔</strong>（PNG / JPG…），解碼成原始像素。</li>
@@ -124,8 +124,8 @@ RGBA 每 channel 1 byte → 每個 Texel 4 bytes：
 1024 × 1024 × 4 bytes = 4 MB
 2048 × 2048 × 4 bytes = 16 MB    ← 邊長 ×2，容量 ×4</code></pre>
         <p>
-            所以一張「看起來才幾百 KB 的 PNG」上了 GPU 可能就是好幾 MB；
-            邊長翻倍、占用翻四倍——這就是貼圖是<strong>顯存大戶</strong>的原因（等下 Mipmap 還會再加約 33%）。
+            幾百 KB 的 PNG，上了 GPU 可能就是好幾 MB；邊長翻倍、占用翻四倍——
+            貼圖是<strong>顯存大戶</strong>（Mipmap 還會再加約 33%）。
         </p>
     </section>
 
@@ -169,8 +169,8 @@ RGBA 每 channel 1 byte → 每個 Texel 4 bytes：
             <figcaption>一張圖預先生成一整組逐級縮小的版本：512 → 256 → 128 → … → 1×1。</figcaption>
         </figure>
         <p>
-            物件離很遠時，一整張大貼圖被壓進螢幕上小小幾個像素——這時硬取樣會<strong>閃爍、鋸齒</strong>（shimmering）。
-            <span class="term">Mipmap</span> 是預先做好一組逐級縮小的貼圖，GPU 依物件在螢幕上占多大，<strong>自動挑一張大小最合適的來取樣</strong>。
+            物件離很遠時，整張大貼圖被壓進螢幕上幾個像素——硬取樣會<strong>閃爍、鋸齒</strong>（shimmering）。
+            <span class="term">Mipmap</span> 預先做好一組逐級縮小的貼圖，GPU 依物件在螢幕上占多大，<strong>自動挑大小最合適的一張來取樣</strong>。
         </p>
 
         <h3>GPU 怎麼知道該挑哪一層？</h3>
@@ -180,9 +180,9 @@ RGBA 每 channel 1 byte → 每個 Texel 4 bytes：
             跳很小（物件很近、被放大），就用原圖。
         </p>
         <p>
-            但要知道「隔壁 pixel 的 UV」，就必須<strong>同時算一組相鄰片段</strong>——
-            這正是第 6 課那個「GPU 以 <strong>2×2（quad）</strong>為最小單位執行 fragment shader」的原因：
-            同組內橫向、縱向兩兩相減，就得到 u、v 方向的變化量，層級立刻算得出來。
+            要知道「隔壁 pixel 的 UV」，就得<strong>同時算一組相鄰片段</strong>——
+            這正是第 6 課「GPU 以 <strong>2×2（quad）</strong>為最小單位執行 fragment shader」的原因：
+            quad 內橫、縱兩兩相減，就是 u、v 方向的變化量。
         </p>
         <div class="callout">
             代價：多存那一組小圖，記憶體約多 <strong>33%</strong>。換來的是遠景乾淨、不閃。<strong>3D 場景幾乎都該開</strong>；純 2D UI 通常不用。
@@ -198,8 +198,8 @@ RGBA 每 channel 1 byte → 每個 Texel 4 bytes：
             </figure>
         </div>
         <p>
-            像地板、道路這種<strong>以很斜的角度</strong>看過去的表面，Mipmap 為了防閃會挑偏小的圖，結果遠處被<strong>過度模糊</strong>。
-            <span class="term">Anisotropic Filtering</span>（各向異性過濾）會沿著被拉長的方向多取幾個樣本，把斜向紋理救回清晰。
+            地板、道路這種<strong>斜視角</strong>表面，Mipmap 為防閃會挑偏小的圖，遠處被<strong>過度模糊</strong>。
+            <span class="term">Anisotropic Filtering</span>（各向異性過濾）沿被拉長的方向多取樣，救回斜向紋理的清晰。
         </p>
         <div class="callout callout--ask">
             代價：比一般過濾貴。所以它是個「品質檔位」——調越高越清楚也越吃效能，斜視角多的場景（賽車、開放世界地面）才值得開高。
@@ -241,9 +241,14 @@ RGBA 每 channel 1 byte → 每個 Texel 4 bytes：
         </table>
         <p class="lesson-meta">屬性名稱與選項依 Cocos Creator 3.8 官方文件（見文末連結）。</p>
         <div class="callout">
-            <strong>一句 debug 直覺：</strong>貼圖鋸齒/糊 → Filter Mode；接縫/重複怪 → Wrap Mode 或 UV；
-            遠處閃爍 → 沒開 Mipmap；斜視角糊掉 → 調 Anisotropy；
-            表面變<strong>雜訊亂色</strong>（或全黑）→ Filter 設了要用 Mipmap 取樣，但 <strong>Mipmap 層級沒真的生成/上傳</strong>——GPU 讀到未初始化的顯存。
+            <strong>Debug 直覺：</strong>
+            <ul>
+                <li>鋸齒／糊 → Filter Mode</li>
+                <li>接縫、重複怪 → Wrap Mode 或 UV</li>
+                <li>遠處閃爍 → 沒開 Mipmap</li>
+                <li>斜視角糊 → 調 Anisotropy</li>
+                <li>雜訊亂色（或全黑）→ Filter 要用 Mipmap 取樣，但層級沒生成／上傳——GPU 讀到未初始化顯存</li>
+            </ul>
         </div>
     </section>
 

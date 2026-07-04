@@ -74,9 +74,14 @@
         <p>
             而圖檔（PNG / JPG）的像素是<strong>從上往下</strong>存的——跟 OpenGL 的方向剛好相反。
             引擎載圖時通常已幫你對齊，所以平常沒感覺；但哪天你自己載圖、或跨 API 移植，
-            看到<strong>貼圖上下顛倒</strong>，第一直覺就是它——修法一行：
+            觀察到<strong>貼圖上下顛倒</strong>（左右、顏色都正常），<strong>可能就是這個原因</strong>。
         </p>
-        <pre><code>uv.y = 1.0 - uv.y;   // 上下翻轉 V</code></pre>
+        <p>要驗證的話，可以<strong>暫時</strong>在 shader 翻轉 V 看看是不是它：</p>
+        <pre><code>uv.y = 1.0 - uv.y;   // 暫時翻轉 V，只用來驗證原因</code></pre>
+        <div class="callout callout--ask">
+            <strong>注意：這行是診斷用，不是修法。</strong>確認原因後，應該回到<strong>載圖／資產處理那一層</strong>把方向對齊。
+            把翻轉留在 shader 裡是危險的 hack——同一支 shader 拿去畫方向正常的貼圖，就換那張反過來壞掉。
+        </div>
     </section>
 
     <section>
@@ -272,10 +277,10 @@
 
         <div class="quiz">
             <p class="quiz-prompt">Q5　自己載入一張貼圖後，畫出來<strong>上下顛倒</strong>（左右正常、顏色正常）。最可能的原因是？</p>
-            <div class="chip-pool chip-pool--stack" data-answer="V 軸方向慣例不合（圖檔由上往下、OpenGL 由下往上），翻一下 V：uv.y = 1.0 - uv.y"
-                 data-ok="對了！只有上下顛倒、其他都正常，就是 V 方向慣例對不上——一行 1.0 - v 修好。"
+            <div class="chip-pool chip-pool--stack" data-answer="可能是 V 軸方向慣例不合（圖檔由上往下、OpenGL 由下往上）——先驗證，再回載圖層修正"
+                 data-ok="對了！只有上下顛倒、其他都正常，最可能是 V 方向慣例對不上。可暫時翻 V 驗證，確認後回載圖／資產層修正，別把翻轉留在 shader。"
                  data-no="注意症狀：只有「上下」顛倒，顏色/清晰度/重複都正常——哪個設定跟「垂直方向」有關？">
-                <button class="chip">V 軸方向慣例不合（圖檔由上往下、OpenGL 由下往上），翻一下 V：uv.y = 1.0 - uv.y</button>
+                <button class="chip">可能是 V 軸方向慣例不合（圖檔由上往下、OpenGL 由下往上）——先驗證，再回載圖層修正</button>
                 <button class="chip">Wrap Mode 設錯 —— 那影響的是超界重複/夾邊，不會整張上下翻</button>
                 <button class="chip">Filter Mode 設錯 —— 那影響的是銳利/模糊，不會翻轉</button>
                 <button class="chip">貼圖檔案壞了</button>

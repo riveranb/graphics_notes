@@ -29,7 +29,7 @@
         <strong>這堂課結束後，你會：</strong>
         <ul>
             <li>知道光照 = 在 Fragment Shader 裡<strong>逐片段算亮度</strong></li>
-            <li>會算 <strong>Diffuse 的 N·L</strong>（Lambert）：表面朝向對上光方向的點積</li>
+            <li>會算 <strong>Diffuse 的 N·L</strong>（Lambert）：表面朝向對上光方向的點積，並知道 <strong>N、L 要先 normalize</strong></li>
             <li>記得 <strong>Phong = Ambient + Diffuse + Specular</strong>，並懂 Shininess 控制高光大小</li>
             <li>認得三種光源：<strong>Directional / Point / Spot</strong></li>
         </ul>
@@ -77,6 +77,20 @@ N·L = 0·0 + 1·1 + 0·0 = 1      → 最亮
 
 N = (1,0,0) 朝右   L = (0,1,0) 光從上
 N·L = 1·0 + 0·1 + 0·0 = 0      → 沒有 diffuse（只剩 ambient）</code></pre>
+
+        <h3>別忘了 normalize（正規化）</h3>
+        <p>
+            上面 N·L 能當「多正對光」的分數，有個<strong>前提：N、L 都要是長度 1</strong>。
+            點積其實是 <code>|N|·|L|·cos θ</code>——只有長度都為 1，<code>N·L</code> 才剛好等於 <code>cos θ</code>；長度不是 1，就把多餘的長度乘進了亮度。
+        </p>
+        <p>
+            最常踩的雷：法線是從 Vertex Shader 經 <code>varying</code> <strong>內插</strong>進 Fragment Shader 的（第 5 課），
+            而內插兩個單位向量會讓結果<strong>變短、不再是 1</strong>。所以算光照前通常先重新正規化：
+        </p>
+        <pre><code>vec3 N = normalize(vNormal);    // 內插後長度跑掉，拉回 1
+vec3 L = normalize(lightDir);   // 指向光源的方向也要</code></pre>
+        <p>忘了 normalize → 光照偏暗、明暗怪怪的，是很常見的 bug。（下面 demo 的 L 就用了 <code>normalize()</code>。）</p>
+
         <figure class="shader-demo shader-demo--square">
             <canvas data-frag="precision mediump float;
 uniform float uTime;
@@ -157,7 +171,7 @@ void main() {
         <h2>快速確認</h2>
 
         <div class="quiz">
-            <p class="quiz-prompt">Q1　表面法線 <code>N = (0.6, 0.8, 0)</code>，指向光源 <code>L = (0, 1, 0)</code>。<br>
+            <p class="quiz-prompt">Q1　表面法線 <code>N = (0.6, 0.8, 0)</code>，指向光源 <code>L = (0, 1, 0)</code>（兩個都已是單位向量）。<br>
                 Diffuse 的 <code>N·L</code> = ?</p>
             <div class="chip-pool chip-pool--stack" data-answer="0.8"
                  data-ok="對了！N·L = 0.6×0 + 0.8×1 + 0×0 = 0.8。"
@@ -192,6 +206,19 @@ void main() {
                 <button class="chip">−1 —— 直接是負的亮度</button>
                 <button class="chip">1 —— 背對光其實最亮</button>
                 <button class="chip">0.5</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">Q4　Fragment Shader 裡的法線是從 Vertex Shader 經 varying <strong>內插</strong>進來的。算 <code>N·L</code> 之前，通常要先對它做什麼？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="normalize()——內插後長度不再是 1，不重新正規化，N·L 算出的亮度會偏掉"
+                 data-ok="對了！內插兩個單位向量結果會變短，normalize 把它拉回長度 1，N·L 才是正確的『多正對光』。"
+                 data-no="想一下：內插（第 5 課）會不會改變向量長度？長度變了，N·L 還準嗎？">
+                <button class="chip">normalize()——內插後長度不再是 1，不重新正規化，N·L 算出的亮度會偏掉</button>
+                <button class="chip">什麼都不用，內插不會改變向量長度</button>
+                <button class="chip">乘以 2 讓表面更亮</button>
+                <button class="chip">轉成 vec4 才能算點積</button>
             </div>
             <p class="quiz-feedback"></p>
         </div>

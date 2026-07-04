@@ -112,6 +112,7 @@ void main() {
         </figure>
         <p>只在特定視角看得到的<strong>亮點</strong>，讓表面有光澤。它多用一個向量 <strong>V</strong>（表面指向視點）：</p>
         <pre><code>I_specular = ks × Il × max(R·V, 0)ⁿ    // R = 光的反射方向、n = Shininess</code></pre>
+        <p>跟 Diffuse 同一條規矩：<strong>R、V 一樣要先 normalize</strong>——所有進點積的方向向量都得是單位向量。</p>
         <p>
             <code>n</code>（<span class="term">Shininess</span>，光澤度）是「亮點多集中」的旋鈕：
             n 小 → 一大片朦朧亮區（霧面）；n 大 → 一個小而銳利的亮點（金屬、塑膠）。

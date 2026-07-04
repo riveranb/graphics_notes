@@ -209,14 +209,14 @@ void main() {
         </div>
 
         <div class="quiz">
-            <p class="quiz-prompt">Q3　光從正上方照下，指向光源 <code>L = (0, 1, 0)</code>。有個表面<strong>背對光</strong>、法線朝下 <code>N = (0, −1, 0)</code>。<br>
-                它的 Diffuse 亮度是多少？</p>
-            <div class="chip-pool chip-pool--stack" data-answer="0 —— N·L = −1，被 max(…,0) 夾成 0，只剩 Ambient"
-                 data-ok="對了！N·L = −1，max(−1, 0) = 0 → 沒有 Diffuse，這面只靠 Ambient 撐著不全黑。"
-                 data-no="先算 N·L = 0×0 + (−1)×1 + 0×0 = −1，再想 max(−1, 0) 會變成？">
-                <button class="chip">0 —— N·L = −1，被 max(…,0) 夾成 0，只剩 Ambient</button>
-                <button class="chip">−1 —— 直接是負的亮度</button>
-                <button class="chip">1 —— 背對光其實最亮</button>
+            <p class="quiz-prompt">Q3　某表面<strong>背對光源</strong>，算出 <code>N·L = −1</code>。<br>
+                Diffuse 公式是 <code>kd × Il × max(N·L, 0)</code>。這面的 Diffuse 分量是多少？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="0 —— max(−1, 0) = 0，背光沒有漫反射，只剩 Ambient 撐著"
+                 data-ok="對了！max(−1, 0) 把負值夾成 0 → 沒有 Diffuse，這面只靠 Ambient 不全黑。"
+                 data-no="關鍵在 max(N·L, 0)：把 −1 丟進 max(…, 0) 會得到什麼？">
+                <button class="chip">0 —— max(−1, 0) = 0，背光沒有漫反射，只剩 Ambient 撐著</button>
+                <button class="chip">−1 —— 沒注意到公式裡的 max，直接用了 N·L</button>
+                <button class="chip">1</button>
                 <button class="chip">0.5</button>
             </div>
             <p class="quiz-feedback"></p>

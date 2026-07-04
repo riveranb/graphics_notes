@@ -172,6 +172,18 @@ RGBA 每 channel 1 byte → 每個 Texel 4 bytes：
             物件離很遠時，一整張大貼圖被壓進螢幕上小小幾個像素——這時硬取樣會<strong>閃爍、鋸齒</strong>（shimmering）。
             <span class="term">Mipmap</span> 是預先做好一組逐級縮小的貼圖，GPU 依物件在螢幕上占多大，<strong>自動挑一張大小最合適的來取樣</strong>。
         </p>
+
+        <h3>GPU 怎麼知道該挑哪一層？</h3>
+        <p>
+            靠 <strong>UV 的變化速度</strong>：在螢幕上往旁邊走一個 pixel，UV 跳了多遠（梯度）。
+            物件離越遠、貼圖被壓得越扁，相鄰兩個 pixel 的 UV 就跳得越大——<strong>跳越大，挑越小張的層級</strong>；
+            跳很小（物件很近、被放大），就用原圖。
+        </p>
+        <p>
+            但要知道「隔壁 pixel 的 UV」，就必須<strong>同時算一組相鄰片段</strong>——
+            這正是第 6 課那個「GPU 以 <strong>2×2（quad）</strong>為最小單位執行 fragment shader」的原因：
+            同組內橫向、縱向兩兩相減，就得到 u、v 方向的變化量，層級立刻算得出來。
+        </p>
         <div class="callout">
             代價：多存那一組小圖，記憶體約多 <strong>33%</strong>。換來的是遠景乾淨、不閃。<strong>3D 場景幾乎都該開</strong>；純 2D UI 通常不用。
         </div>

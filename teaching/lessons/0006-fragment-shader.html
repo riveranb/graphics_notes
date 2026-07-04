@@ -31,6 +31,7 @@
             <li>知道 Fragment Shader 在管線的<strong>哪個位置、每次處理什麼</strong></li>
             <li>看懂它的<strong>資料流</strong>：內插過的 varying 進來、gl_FragColor 出去</li>
             <li>會三個實戰改法：<strong>染色（tint）、UV 除錯顯示、用時間做呼吸閃爍</strong></li>
+            <li>會用 <code>discard</code> 做<strong>鏤空</strong>（alpha test），並知道它跟半透明的差別</li>
             <li>建立除錯直覺：<strong>顏色不對，先來這裡查什麼</strong></li>
         </ul>
     </section>
@@ -202,6 +203,46 @@ void main() {
     </section>
 
     <section>
+        <h2>另一種輸出：discard（乾脆不畫）</h2>
+        <p>
+            前面三個改法都在<strong>算顏色</strong>。但 Fragment Shader 還能做一件事：決定這個片段<strong>根本不要畫</strong>——
+            用 <code>discard</code> 把它整個丟掉，不寫顏色、也不寫深度，就像它從來沒存在過。
+        </p>
+        <pre><code>void main() {
+    vec4 texColor = texture2D(diffuseMap, vTexCoord);
+    if (texColor.a &lt; 0.5) {
+        discard;            // alpha 太低 → 這個片段整個丟掉，不畫
+    }
+    gl_FragColor = texColor;
+}</code></pre>
+        <p>
+            這是<strong>鏤空 / alpha test</strong> 的做法：樹葉、鐵絲網、貼紙這種「邊緣要嘛實心、要嘛完全消失」的東西，
+            用一張帶 alpha 的貼圖，alpha 太低的地方 <code>discard</code> 掉，剩下的照常上色。
+        </p>
+        <figure class="shader-demo">
+            <canvas data-frag="precision mediump float;
+varying vec2 vUv;
+void main() {
+    // 程序 alpha：離中心越遠越透明（模擬帶 alpha 的貼圖）
+    float d = distance(vUv, vec2(0.5));
+    if (d &gt; 0.35) {
+        discard;            // 圓形外的片段整個丟掉 → 鏤空
+    }
+    gl_FragColor = vec4(0.9, 0.5, 0.2, 1.0);
+}"></canvas>
+            <figcaption>即時預覽：圓內照常上色，圓外被 discard 掉 → 露出後面（這裡是黑背景）。這就是鏤空。</figcaption>
+        </figure>
+        <div class="callout">
+            <strong>discard ≠ 半透明。</strong>它是<strong>非黑即白</strong>：保留、或整個丟掉，沒有中間的「半透明」。
+            真正的半透明疊色是第 9 課的 <span class="term">Blending</span>——那個要跟背景混色、還要管繪製順序；discard 這些都不用。
+        </div>
+        <div class="callout callout--ask">
+            <strong>但 discard 有代價：</strong>用了它，GPU 就沒辦法在跑 fragment shader 之前靠 <span class="term">Early-Z</span> 提早剔除
+            （因為要跑完才知道會不會被丟）。所以能用不透明就別亂用——真的要鏤空才用。
+        </div>
+    </section>
+
+    <section>
         <h2>它會跑「非常」多次</h2>
         <p>
             一個 1920×1080 的畫面約有 <strong>200 萬個像素</strong>；而一個普通模型可能只有<strong>幾千個頂點</strong>。
@@ -276,6 +317,19 @@ void main() {
                 <button class="chip">Vertex Shader：gl_Position 沒輸出</button>
                 <button class="chip">Winding order 反了，被 Back Face Culling 剔除</button>
                 <button class="chip">CPU 沒上傳 Index Buffer</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">Q5　在 fragment shader 裡對某個片段執行 <code>discard;</code>，會發生什麼？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="這個片段整個被丟掉：不寫顏色、也不寫深度，像它不存在"
+                 data-ok="對了！discard 是「這一格不要畫」——不是輸出黑色、不是變半透明、也不是讓整個物件消失。"
+                 data-no="discard 不輸出任何顏色，也只影響當前這一個片段。再想一下它到底做了什麼。">
+                <button class="chip">這個片段整個被丟掉：不寫顏色、也不寫深度，像它不存在</button>
+                <button class="chip">這個片段變成半透明</button>
+                <button class="chip">這個片段輸出黑色</button>
+                <button class="chip">整個物件都消失</button>
             </div>
             <p class="quiz-feedback"></p>
         </div>

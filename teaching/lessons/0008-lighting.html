@@ -77,7 +77,7 @@ N·L = 0·0 + 1·1 + 0·0 = 1      → 最亮
 
 N = (1,0,0) 朝右   L = (0,1,0) 光從上
 N·L = 1·0 + 0·1 + 0·0 = 0      → 沒有 diffuse（只剩 ambient）</code></pre>
-        <figure class="shader-demo">
+        <figure class="shader-demo shader-demo--square">
             <canvas data-frag="precision mediump float;
 uniform float uTime;
 varying vec2 vUv;
@@ -110,7 +110,7 @@ void main() {
         <div class="callout callout--ask">
             現代引擎（Cocos / Unity 內建）多用 <span class="term">Blinn-Phong</span>——概念一樣三塊相加，只是高光改用「半程向量」算，更省也更自然。名字認得就好，不展開。
         </div>
-        <figure class="shader-demo">
+        <figure class="shader-demo shader-demo--square">
             <canvas data-frag="precision mediump float;
 uniform float uTime;
 varying vec2 vUv;

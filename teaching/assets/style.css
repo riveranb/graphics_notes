@@ -172,6 +172,12 @@ figcaption {
     background: #000;
 }
 
+.shader-demo--square canvas {
+    max-width: 240px;
+    aspect-ratio: 1 / 1;
+    height: auto;
+}
+
 /* --- citations / sources --- */
 
 .citation ul {

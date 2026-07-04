@@ -145,7 +145,7 @@ void main() {
     </section>
 
     <section>
-        <h2>光源類型（一句話認得）</h2>
+        <h2>光源類型</h2>
         <div class="two-col">
             <figure>
                 <img src="../../images/light_directional.png" alt="平行光">
@@ -153,14 +153,30 @@ void main() {
             </figure>
             <figure>
                 <img src="../../images/light_point.png" alt="點光源">
-                <figcaption><strong>Point</strong>：燈泡。從一點發散，<strong>離越遠越暗</strong>（衰減）。</figcaption>
+                <figcaption><strong>Point</strong>：燈泡。從一點發散，離越遠越暗。</figcaption>
             </figure>
             <figure>
                 <img src="../../images/light_spotlight.png" alt="聚光燈">
                 <figcaption><strong>Spot</strong>：手電筒。錐形，有方向也有角度。</figcaption>
             </figure>
         </div>
-        <p>三者差在「光從哪來、怎麼衰減」——但每個片段的算法核心都一樣：湊出 N、L、V，套上面那三塊公式。</p>
+
+        <h3>Point：距離衰減（Attenuation）</h3>
+        <p>點光源離越遠越暗，把算出的亮度乘上一個隨距離掉的衰減因子：</p>
+        <pre><code>attenuation = 1 / (kc + kl·d + kq·d²)    // d = 片段到光源的距離</code></pre>
+        <p>d 越大、分母越大 → 越暗。<strong>二次項 kq·d²</strong> 主導遠處的快速變暗（接近真實光的平方反比）。</p>
+
+        <h3>Spot：切光角（Cutoff Angle）</h3>
+        <p>聚光燈是一個錐形，用兩個角度界定邊緣：</p>
+        <ul>
+            <li><strong>Inner cutoff</strong>（內圈角）以內 → <strong>全亮</strong>。</li>
+            <li><strong>Outer cutoff</strong>（外圈角）以外 → <strong>全暗</strong>。</li>
+            <li>兩圈之間用角度平滑漸暗，避免邊緣一刀切的硬邊。</li>
+        </ul>
+        <pre><code>intensity = (cos θ − cos outer) / (cos inner − cos outer)
+// θ = 片段方向與聚光中心方向的夾角，結果夾在 [0,1]</code></pre>
+
+        <p>三者差在「光從哪來、怎麼衰減」——但每個片段的核心算法一樣：湊出 N、L、V，套前面那三塊公式。</p>
     </section>
 
     <section>

@@ -79,6 +79,8 @@
             <tr><td class="term">Shininess</td><td>光澤度</td><td>Specular 指數 n：越大高光越小越集中，表面看起來越光滑。</td><td>L8</td></tr>
             <tr><td class="term">Blinn-Phong</td><td>Blinn-Phong 模型</td><td>Phong 改良版，高光改用半程向量算，更省更自然；引擎多用它。</td><td>L8</td></tr>
             <tr><td class="term">Directional / Point / Spot</td><td>平行光 / 點光 / 聚光</td><td>三種基礎光源：太陽 / 燈泡（會衰減）/ 手電筒（錐形）。</td><td>L8</td></tr>
+            <tr><td class="term">Attenuation</td><td>距離衰減</td><td>Point/Spot 亮度隨距離下降：1/(kc+kl·d+kq·d²)；二次項主導遠處。</td><td>L8</td></tr>
+            <tr><td class="term">Cutoff Angle</td><td>切光角</td><td>Spot 的內/外圈角：內圈全亮、外圈全暗、之間依角度漸暗。</td><td>L8</td></tr>
             <tr><td class="term">Depth Test</td><td>深度測試</td><td>比較片段深度，近的才畫、遠的丟掉，自動解決遮擋。</td><td>L9</td></tr>
             <tr><td class="term">Depth Buffer (Z-buffer)</td><td>深度緩衝</td><td>存每個像素「離鏡頭多遠」的緩衝區。</td><td>L9</td></tr>
             <tr><td class="term">Blending</td><td>顏色混合</td><td>把新片段顏色和背景已有顏色混合，做透明/發光。</td><td>L9</td></tr>

@@ -13,7 +13,7 @@
 </nav>
 <main>
     <header class="lesson-header">
-        <p class="lesson-meta">Lesson 0007 · 約 9 分鐘 · 無數學</p>
+        <p class="lesson-meta">Lesson 0007 · 約 14 分鐘 · 有一題小計算</p>
         <h1>Texture + UV：把一張圖貼到模型上</h1>
     </header>
 
@@ -28,9 +28,10 @@
     <section class="callout callout--win">
         <strong>這堂課結束後，你會：</strong>
         <ul>
-            <li>知道 Texture = 貼在模型表面的 2D 圖，用 <strong>UV</strong> 對位</li>
-            <li>知道採樣（sampling）就是「用 UV 去圖上取一個顏色」</li>
-            <li>認得兩個常出 bug 的設定：<strong>Filtering</strong>（平滑）與 <strong>Wrapping</strong>（超界）</li>
+            <li>知道 Texture 靠 <strong>UV</strong> 對位，採樣（sampling）就是「用 UV 去圖上取一個 Texel」</li>
+            <li>分得清兩個基本設定：<strong>Filter Mode</strong>（放大怎麼取色）與 <strong>Wrap Mode</strong>（UV 超界怎麼辦）</li>
+            <li>知道 <strong>Mipmap</strong>（遠處換小圖）與 <strong>Anisotropic</strong>（斜視角救星）各解決什麼</li>
+            <li>會在 <strong>Cocos texture 面板</strong>把上面這些真的設定好</li>
         </ul>
     </section>
 
@@ -54,48 +55,182 @@
         </figure>
         <p>
             第 2 課提過頂點屬性 <span class="term">UV</span>：每個頂點帶一組 (u,v) ∈ [0,1]，指向貼圖上的一點。
-            光柵化把 UV 內插到每個片段，Fragment Shader 再用它去<span class="term">採樣</span>（sampling）取顏色 ——
-            就是第 6 課看到的 <code>texture2D(map, vTexCoord)</code>。
+            <strong>u 是水平、v 是垂直</strong>，範圍都是 0～1（跟貼圖多大解析度無關）。
+            光柵化把 UV 內插到每個片段（第 5 課），Fragment Shader 再拿它去取色。
         </p>
     </section>
 
     <section>
-        <h2>兩個常出 bug 的設定</h2>
-        <p><strong>Filtering（過濾）</strong>—— 一個 UV 落在像素之間時，怎麼取色：</p>
+        <h2>採樣：用 UV 取一個 Texel</h2>
+        <p>
+            <span class="term">採樣</span>（Sampling）就是第 6 課那行 <code>texture2D(map, vTexCoord)</code> 在做的事：
+            拿片段的 UV，去貼圖上讀出對應位置的一個像素——貼圖的像素有個專名叫 <span class="term">Texel</span>。
+        </p>
+        <p>UV 是 0～1 的比例，乘上貼圖解析度就是實際位置：</p>
+        <pre><code>UV = (0.5, 0.5)   貼圖 100×100
+→ 取樣位置 ≈ (0.5×100, 0.5×100) = (50, 50)   讀這個 Texel 的顏色</code></pre>
+        <p>
+            所以同一組 UV，貼在解析度不同的圖上，取到的是「同一個相對位置」。真正麻煩的是：
+            UV 內插後<strong>常常不會剛好落在某個 Texel 正中央</strong>，甚至超出 0～1——這就要靠下面兩個設定決定怎麼辦。
+        </p>
+    </section>
+
+    <section>
+        <h2>設定一：Filter Mode（放大時怎麼取色）</h2>
+        <p>當一個 Texel 被放大到蓋住好幾個螢幕像素，UV 落在格與格之間，該取哪個顏色？</p>
+        <div class="two-col">
+            <figure>
+                <img src="../../images/texturemapping_filtering_nearest.png" alt="Nearest 過濾結果">
+                <figcaption><strong>Nearest</strong>：取最近的一格。銳利、像素風，但放大會鋸齒。</figcaption>
+            </figure>
+            <figure>
+                <img src="../../images/texturemapping_filtering_linear.png" alt="Linear 過濾結果">
+                <figcaption><strong>Linear</strong>：鄰近四格加權平均。平滑，但可能糊。</figcaption>
+            </figure>
+        </div>
         <ul>
-            <li><span class="term">Nearest</span>：取最近的一格 → 銳利、像素風，但放大會鋸齒</li>
-            <li><span class="term">Linear</span>：鄰近幾格平均 → 平滑，但可能糊</li>
+            <li><span class="term">Nearest</span> — 直接取最近那格 → 銳利。<strong>像素風遊戲</strong>要的就是這個。</li>
+            <li><span class="term">Linear</span> — 鄰近格內插平均 → 平滑。一般寫實貼圖用這個。（Cocos 面板裡叫 <strong>Bilinear</strong>，就是 Linear。）</li>
         </ul>
-        <p><strong>Wrapping（環繞）</strong>—— UV 超出 [0,1] 時怎麼辦：</p>
-        <ul>
-            <li><span class="term">Repeat</span>：重複貼（磁磚、地板）</li>
-            <li><span class="term">Clamp</span>：夾在邊界（避免邊緣接縫）</li>
-        </ul>
+    </section>
+
+    <section>
+        <h2>設定二：Wrap Mode（UV 超出 [0,1] 怎麼辦）</h2>
+        <p>UV 不一定乖乖待在 0～1。故意設成 0～4 想貼滿地板、或算歪了超出去，Wrap Mode 決定超界時怎麼取：</p>
         <figure>
             <img src="../../images/texturemapping_wrapping_opengl.png" alt="OpenGL 各種 wrapping 模式">
-            <figcaption>同一張圖、不同 Wrapping：Repeat / Mirrored / Clamp-to-edge / Clamp-to-border。</figcaption>
+            <figcaption>同一張圖、不同 Wrap Mode：Repeat / Mirrored Repeat / Clamp-to-edge / Clamp-to-border。</figcaption>
         </figure>
+        <ul>
+            <li><span class="term">Repeat</span> — 取小數部分重複貼。<strong>磁磚地板、牆面</strong>這種要無縫鋪滿的用它。</li>
+            <li><span class="term">Mirror</span> — 每重複一次翻轉一次，接縫比較不明顯。</li>
+            <li><span class="term">Clamp</span> — 超出就夾在邊界、一直取邊緣那格。<strong>UI、不該重複的單張圖</strong>用它，避免邊緣長出接縫怪色。</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Mipmap：遠處自動換小張</h2>
+        <figure>
+            <img src="../../images/texture_mipmaps.png" alt="Mipmap 各層級">
+            <figcaption>一張圖預先生成一整組逐級縮小的版本：512 → 256 → 128 → … → 1×1。</figcaption>
+        </figure>
+        <p>
+            物件離很遠時，一整張大貼圖被壓進螢幕上小小幾個像素——這時硬取樣會<strong>閃爍、鋸齒</strong>（shimmering）。
+            <span class="term">Mipmap</span> 是預先做好一組逐級縮小的貼圖，GPU 依物件在螢幕上占多大，<strong>自動挑一張大小最合適的來取樣</strong>。
+        </p>
         <div class="callout">
-            貼圖<strong>鋸齒/糊</strong>多半是 Filtering；貼圖<strong>接縫/破圖/重複怪</strong>多半是 Wrapping 或 UV。
-            （另有 <span class="term">Mipmap</span>：遠處自動換小張貼圖，減少閃爍 —— 先知道名字即可。）
+            代價：多存那一組小圖，記憶體約多 <strong>33%</strong>。換來的是遠景乾淨、不閃。<strong>3D 場景幾乎都該開</strong>；純 2D UI 通常不用。
+        </div>
+    </section>
+
+    <section>
+        <h2>Anisotropic Filtering：斜視角的救星</h2>
+        <div class="two-col">
+            <figure>
+                <img src="../../images/texturemapping_filtering_vs_anisotropic.png" alt="一般過濾 vs 各向異性過濾">
+                <figcaption>左：一般過濾，斜看的地板遠處糊掉。右：Anisotropic，斜向紋理清楚很多。</figcaption>
+            </figure>
+        </div>
+        <p>
+            像地板、道路這種<strong>以很斜的角度</strong>看過去的表面，Mipmap 為了防閃會挑偏小的圖，結果遠處被<strong>過度模糊</strong>。
+            <span class="term">Anisotropic Filtering</span>（各向異性過濾）會沿著被拉長的方向多取幾個樣本，把斜向紋理救回清晰。
+        </p>
+        <div class="callout callout--ask">
+            代價：比一般過濾貴。所以它是個「品質檔位」——調越高越清楚也越吃效能，斜視角多的場景（賽車、開放世界地面）才值得開高。
+        </div>
+    </section>
+
+    <section>
+        <h2>對應到 Cocos：texture 面板怎麼設</h2>
+        <p>上面這些在 Cocos Creator 裡，就是選一張貼圖後 Inspector 面板上的幾個下拉：</p>
+        <div class="two-col">
+            <figure>
+                <img src="../../images/cocoscreator_texture_filtermode.png" alt="Cocos texture Filter Mode 下拉">
+                <figcaption>Filter Mode 下拉。</figcaption>
+            </figure>
+            <figure>
+                <img src="../../images/cocoscreator_texture_wrapmode.png" alt="Cocos texture Wrap Mode 下拉">
+                <figcaption>Wrap Mode 下拉。</figcaption>
+            </figure>
+        </div>
+        <table class="glossary-table">
+            <thead><tr><th>面板欄位</th><th>選項</th><th>對應到這課</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td class="term">Filter Mode</td>
+                    <td>Nearest (None)<br>Bilinear<br>Bilinear with Mipmaps<br>Trilinear with Mipmaps</td>
+                    <td>Nearest = 最近點（像素風）<br>Bilinear = Linear 平滑<br>+ Mipmaps = 順便開 Mipmap<br>Trilinear = 連 Mipmap 兩層之間也內插（最平滑）</td>
+                </tr>
+                <tr>
+                    <td class="term">Wrap Mode</td>
+                    <td>Repeat / Clamp / Mirror</td>
+                    <td>就是上面的環繞三選項</td>
+                </tr>
+                <tr>
+                    <td class="term">Anisotropy</td>
+                    <td>數字（0 = 關）</td>
+                    <td>各向異性過濾強度，調高改善斜視角</td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="lesson-meta">屬性名稱與選項依 Cocos Creator 3.8 官方文件（見文末連結）。</p>
+        <div class="callout">
+            <strong>一句 debug 直覺：</strong>貼圖鋸齒/糊 → Filter Mode；接縫/重複怪 → Wrap Mode 或 UV；
+            遠處閃爍 → 沒開 Mipmap；斜視角糊掉 → 調 Anisotropy。
         </div>
     </section>
 
     <section>
         <h2>快速確認</h2>
+
         <div class="quiz">
-            <p class="quiz-prompt">貼圖放大後一格一格有鋸齒，想要平滑，Filtering 該選？</p>
-            <div class="chip-pool" data-answer="Linear" data-ok="對了！Linear 會把鄰近像素平均，邊緣較平滑。" data-no="想一下：哪個會做『平均/內插』？">
-                <button class="chip">Nearest</button>
-                <button class="chip">Linear</button>
+            <p class="quiz-prompt">Q1　片段的 UV = <code>(0.25, 0.75)</code>，貼圖解析度 <code>200×200</code>。採樣到的 Texel 位置約在？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="(50, 150)"
+                 data-ok="對了！UV × 解析度 = (0.25×200, 0.75×200) = (50, 150)。"
+                 data-no="採樣位置 = UV × 解析度，兩個分量各乘一次。">
+                <button class="chip">(50, 150)</button>
+                <button class="chip">(0.25, 0.75)</button>
+                <button class="chip">(150, 50)</button>
+                <button class="chip">(100, 100)</button>
             </div>
             <p class="quiz-feedback"></p>
         </div>
+
         <div class="quiz">
-            <p class="quiz-prompt">頂點上、指向貼圖位置的座標叫什麼？（英文兩個字母）</p>
-            <input type="text" class="quiz-input" id="recall-input" autocomplete="off" placeholder="?">
-            <div class="quiz-actions"><button class="btn" id="check-recall">檢查</button></div>
-            <p class="quiz-feedback" id="recall-feedback"></p>
+            <p class="quiz-prompt">Q2　做一款<strong>像素風</strong>遊戲，貼圖放大後要<strong>保持一格一格的銳利</strong>，Filter Mode 選？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="Nearest —— 取最近那格，保持銳利像素邊緣"
+                 data-ok="對了！Nearest 不做平均，放大後就是清楚的方塊像素——像素風要的。"
+                 data-no="想要『銳利、不糊』：哪個是『直接取最近格、不做平均』？">
+                <button class="chip">Nearest —— 取最近那格，保持銳利像素邊緣</button>
+                <button class="chip">Bilinear（Linear）—— 會平均鄰近格，把像素邊緣抹糊</button>
+                <button class="chip">Trilinear with Mipmaps —— 更平滑，更不是像素風要的</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">Q3　幫地板貼磁磚紋理，UV 特意設成 0～8 想<strong>無縫鋪滿</strong>。Wrap Mode 選？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="Repeat —— 超界取小數部分重複貼，鋪滿地板"
+                 data-ok="對了！Repeat 讓超出 [0,1] 的 UV 重複取樣，這就是磁磚/地板鋪滿的做法。"
+                 data-no="要『重複鋪滿』：哪個是把超界的 UV 循環取小數部分？">
+                <button class="chip">Repeat —— 超界取小數部分重複貼，鋪滿地板</button>
+                <button class="chip">Clamp —— 超界夾在邊界，只會把邊緣那格拉成一條</button>
+                <button class="chip">關掉貼圖，改用頂點顏色</button>
+            </div>
+            <p class="quiz-feedback"></p>
+        </div>
+
+        <div class="quiz">
+            <p class="quiz-prompt">Q4　在 Cocos 面板，你想要「<strong>線性平滑 + 遠處開 Mipmap 防閃</strong>」。Filter Mode 該選哪個？</p>
+            <div class="chip-pool chip-pool--stack" data-answer="Bilinear with Mipmaps"
+                 data-ok="對了！Bilinear = 線性平滑，with Mipmaps = 順便開 Mipmap，正好兩個都要。"
+                 data-no="拆開看：要『線性』(Bilinear) 而且要『開 Mipmap』(with Mipmaps)。">
+                <button class="chip">Bilinear with Mipmaps</button>
+                <button class="chip">Nearest (None)</button>
+                <button class="chip">Bilinear</button>
+                <button class="chip">Clamp</button>
+            </div>
+            <p class="quiz-feedback"></p>
         </div>
     </section>
 
@@ -103,6 +238,7 @@
         <h2>原始資料 / 延伸閱讀</h2>
         <ul>
             <li>本課改寫自 <a href="../../遊戲繪圖_04_Texture.md">遊戲繪圖_04_Texture.md</a></li>
+            <li>Cocos 面板屬性：<a href="https://docs.cocos.com/creator/3.8/manual/en/asset/texture.html" target="_blank" rel="noopener">Cocos Creator — Texture</a></li>
             <li>推薦閱讀：<a href="https://learnopengl.com/Getting-started/Textures" target="_blank" rel="noopener">LearnOpenGL — Textures</a></li>
         </ul>
     </section>
@@ -118,19 +254,6 @@
 </main>
 
 <script>
-(function () {
-    var accepted = ['uv', 'u,v', 'uv 座標', 'texcoord'];
-    var input = document.getElementById('recall-input');
-    var fb = document.getElementById('recall-feedback');
-    function check() {
-        var v = input.value.trim().toLowerCase();
-        var ok = accepted.indexOf(v) !== -1;
-        fb.textContent = ok ? '對了！UV。' : '提示：兩個字母，U 和 V。';
-        fb.className = 'quiz-feedback ' + (ok ? 'correct' : 'incorrect');
-    }
-    document.getElementById('check-recall').addEventListener('click', check);
-    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { check(); } });
-})();
 document.querySelectorAll('.chip-pool[data-answer]').forEach(function (pool) {
     var fb = pool.parentElement.querySelector('.quiz-feedback');
     pool.addEventListener('click', function (e) {

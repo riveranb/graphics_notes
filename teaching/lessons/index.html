@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>電腦圖學課程目錄</title>
+    <link rel="stylesheet" href="../assets/style.css">
+    <style>
+        .index-section {
+            margin-bottom: 2rem;
+        }
+
+        .index-list {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .index-list li {
+            margin: 0.3em 0; /* 覆蓋 style.css 的預設 margin (0.9em) */
+        }
+
+        .index-list a {
+            display: block;
+            text-decoration: none;
+            color: #0366d6;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        .index-list a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="lesson-nav">
+        <span>電腦圖學課程目錄</span>
+        <a href="../reference/glossary.html">名詞對照表 &rarr;</a>
+    </nav>
+    <main>
+        <header class="lesson-header">
+            <h1>電腦圖學課程目錄</h1>
+            <p class="lesson-meta">從零開始理解圖學渲染管線</p>
+        </header>
+
+        <section class="index-section">
+            <h2>入門課</h2>
+            <p>為初學者設計的圖學渲染基礎課程，適合完全沒有圖學背景的開發者。</p>
+            <ul class="index-list">
+                <li><a href="0001-rendering-and-the-pipeline.html">Lesson 1 — 渲染 + 管線：先看清這條路的長相</a></li>
+                <li><a href="0002-mesh-and-vertex-data.html">Lesson 2 — Mesh：電腦怎麼記住一個 3D 模型</a></li>
+                <li><a href="0003-coordinate-spaces.html">Lesson 3 — 座標空間：一路換了幾次「參照系」</a></li>
+                <li><a href="0004-vertex-shader.html">Lesson 4 — Vertex Shader：你會改的第一種程式碼</a></li>
+                <li><a href="0005-rasterization.html">Lesson 5 — Rasterization：三角形變成一格格像素</a></li>
+                <li><a href="0006-fragment-shader.html">Lesson 6 — Fragment Shader：決定「顏色」的那支程式</a></li>
+                <li><a href="0007-texture-and-uv.html">Lesson 7 — Texture + UV：把一張圖貼到模型上</a></li>
+                <li><a href="0008-lighting.html">Lesson 8 — Lighting：讓平面的東西「立體」起來</a></li>
+                <li><a href="0009-depth-and-blending.html">Lesson 9 — Depth test + Blending：誰擋誰、怎麼混色</a></li>
+            </ul>
+        </section>
+
+    </main>
+</body>
+
+</html>

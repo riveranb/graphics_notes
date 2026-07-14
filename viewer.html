@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Markdown Viewer</title>
+<!-- 引入 github-markdown-css 讓排版好看 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown.min.css">
+<!-- 引入 marked.js -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+    body {
+        box-sizing: border-box;
+        min-width: 200px;
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 45px;
+    }
+    @media (max-width: 767px) {
+        body {
+            padding: 15px;
+        }
+    }
+    #back-btn {
+        display: inline-block;
+        margin-bottom: 20px;
+        text-decoration: none;
+        color: #0366d6;
+        font-family: sans-serif;
+    }
+    #back-btn:hover {
+        text-decoration: underline;
+    }
+</style>
+</head>
+<body class="markdown-body">
+    <a id="back-btn" href="javascript:history.back()">&larr; 返回上一頁</a>
+    <div id="content">載入中...</div>
+
+    <script>
+        // 從網址列取得 file 參數
+        const urlParams = new URLSearchParams(window.location.search);
+        const file = urlParams.get('file');
+
+        if (file) {
+            document.title = file.replace('.md', '');
+            
+            // 抓取 md 檔案
+            fetch(file)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('HTTP 狀態碼: ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    // 使用 marked 將 Markdown 轉換為 HTML 並寫入
+                    document.getElementById('content').innerHTML = marked.parse(text);
+                })
+                .catch(err => {
+                    document.getElementById('content').innerHTML = '<p style="color:red">無法載入文件: ' + err.message + '</p>';
+                });
+        } else {
+            document.getElementById('content').innerHTML = '<p style="color:red">網址缺少 file 參數，例如：?file=xxx.md</p>';
+        }
+    </script>
+</body>
+</html>

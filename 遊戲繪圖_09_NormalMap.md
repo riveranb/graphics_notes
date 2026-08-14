@@ -37,7 +37,17 @@ Edge_1 &= \Delta U_1 \cdot T + \Delta V_1 \cdot B \\
 Edge_2 &= \Delta U_2 \cdot T + \Delta V_2 \cdot B
 \end{aligned}
 ```
-透過解這個線性方程式，我們就能計算出每個三角形表面的 T 和 B 向量。在現代遊戲引擎中，這些資料通常會在模型載入階段預先計算好，並作為頂點屬性（Vertex Attributes）傳入 GPU。
+
+將上式寫成矩陣形式並求逆，可得 T 與 B 的解析解：
+
+```math
+\begin{bmatrix} T \\ B \end{bmatrix}
+= \frac{1}{\Delta U_1 \Delta V_2 - \Delta U_2 \Delta V_1}
+\begin{bmatrix} \Delta V_2 & -\Delta V_1 \\ -\Delta U_2 & \Delta U_1 \end{bmatrix}
+\begin{bmatrix} Edge_1 \\ Edge_2 \end{bmatrix}
+```
+
+其中分母 $\Delta U_1 \Delta V_2 - \Delta U_2 \Delta V_1$ 即為 UV 差值矩陣的行列式。在現代遊戲引擎中，這些資料通常會在模型載入階段預先計算好，並作為頂點屬性（Vertex Attributes）傳入 GPU。
 
 *   **實務優化：省去 Bitangent 頂點屬性**
     因為 T、B、N 三者互相垂直，實務上為了節省頂點暫存區 (VBO) 的記憶體與頻寬，我們**不會**把副切線 (B) 當作屬性傳給 GPU，而是在 Vertex Shader 內直接靠向量外積（Cross Product）算出來。此外，為了支援對稱模型共用貼圖（UV 鏡像），通常會在 Tangent 的 $W$ 分量夾帶旋轉方向（$+1.0$ 或 $-1.0$）：
@@ -47,21 +57,30 @@ Edge_2 &= \Delta U_2 \cdot T + \Delta V_2 \cdot B
 
 ## Shader 實作邏輯
 
-在渲染管線中實作 Normal Mapping，通常會有兩種空間轉換的選擇：
-1.  將法線從「切線空間」轉換到「世界空間」。
-2.  將光源方向與視角方向從「世界空間」轉換到「切線空間」。
+在渲染管線中實作 Normal Mapping，有兩種空間轉換策略：
+1.  **作法 A**：將光源與視角從「世界空間」轉換到「切線空間」，在切線空間中做光照。
+2.  **作法 B**：將法線從「切線空間」轉換到「世界空間」，在世界空間中做光照。
 
-**實務上推薦的做法是第二種**。因為我們可以在 Vertex Shader 中就將光源和視角向量轉換到切線空間，這樣 Fragment Shader 只需要單純進行內積運算即可，能大幅節省計算效能（因為 Vertex 數量遠少於 Fragment 數量）。
+兩種作法各有優勢，以下分別說明。
 
-### Vertex Shader
-在 Vertex Shader 中，由於模型共用頂點經平均化後 T 與 N 可能不完全互垂，建議先做一次 **Gram-Schmidt 正交化**，再利用轉置矩陣（正交矩陣的反矩陣即為轉置矩陣 `transpose`）將世界空間的向量轉換至切線空間：
+### 作法 A：切線空間光照（Forward Shading 常用）
+
+在 Vertex Shader 中將光源和視角向量轉換到切線空間，Fragment Shader 只需單純內積運算。因為 Vertex 數量遠少於 Fragment，矩陣乘法集中在 VS 端可節省效能。
+
+**Vertex Shader**
+
+注意：頂點屬性傳入的 T 和 N 處於**模型空間 (Object Space)**，必須先乘上 `mat3(model)`（或 Normal Matrix）轉到**世界空間**，才能與世界空間的 `lightPos` / `viewPos` 配合運算。由於模型共用頂點經平均化後 T 與 N 可能不完全互垂，建議做一次 **Gram-Schmidt 正交化**：
 
 ```glsl
+// 0. 先將 T, N 從模型空間轉至世界空間
+vec3 T = normalize(mat3(model) * aTangent.xyz);
+vec3 N = normalize(mat3(model) * aNormal);
+
 // 1. Gram-Schmidt 正交化：確保 T 與 N 完全垂直
 T = normalize(T - dot(T, N) * N);
 vec3 B = cross(N, T) * aTangent.w; // 靠外積算出 B，W 分量處理 UV 鏡像
 
-// 2. 建立 TBN 矩陣，用轉置取代繁重的矩陣求逆
+// 2. 建立 TBN 矩陣，用轉置取代繁重的矩陣求逆（正交矩陣的逆 = 轉置）
 mat3 TBN = transpose(mat3(T, B, N));
 
 // 3. 將光照與視角向量轉換至切線空間，傳遞給 Fragment Shader
@@ -70,8 +89,9 @@ TangentViewPos  = TBN * viewPos;
 TangentFragPos  = TBN * vec3(model * vec4(aPos, 1.0));
 ```
 
-### Fragment Shader
-在 Fragment Shader 中，我們從法線貼圖採樣出顏色，將其還原為 $[-1, 1]$ 的法線向量，接著使用切線空間下的向量進行標準的漫反射（Diffuse）與高光（Specular）計算。
+**Fragment Shader**
+
+從法線貼圖採樣出顏色，還原為 $[-1, 1]$ 的法線向量，直接在切線空間中做光照計算：
 
 ```glsl
 // 1. 從貼圖採樣法線 (範圍 [0,1])
@@ -85,6 +105,42 @@ vec3 lightDir = normalize(TangentLightPos - TangentFragPos);
 float diff = max(dot(normal, lightDir), 0.0);
 // ...後續可接續計算 Specular 等
 ```
+
+### 作法 B：世界空間光照（PBR / Deferred Shading 標準作法）
+
+在多光源或 Deferred Shading 架構下，G-Buffer 需要儲存世界空間的法線。此時不適合把所有光源轉到切線空間，而是反過來——在 Fragment Shader 中用 TBN 矩陣將採樣出的法線轉至世界空間。
+
+**Vertex Shader**：將世界空間的 TBN 向量傳給 Fragment Shader（不做轉置）。
+
+```glsl
+vec3 T = normalize(mat3(model) * aTangent.xyz);
+vec3 N = normalize(mat3(model) * aNormal);
+T = normalize(T - dot(T, N) * N);
+vec3 B = cross(N, T) * aTangent.w;
+
+vs_out.TBN = mat3(T, B, N); // 直接傳遞，不轉置
+```
+
+**Fragment Shader**：用 `TBN * normal` 將切線空間法線轉至世界空間，後續光照計算皆在世界空間完成。
+
+```glsl
+vec3 normal = texture(normalMap, TexCoords).rgb;
+normal = normalize(normal * 2.0 - 1.0);
+normal = normalize(TBN * normal); // 切線空間 → 世界空間
+
+// 在世界空間中進行光照計算（適用多光源 / Deferred Shading）
+vec3 lightDir = normalize(lightPos - FragPos);
+float diff = max(dot(normal, lightDir), 0.0);
+```
+
+**兩種作法比較**：
+
+| | 作法 A（切線空間光照） | 作法 B（世界空間光照） |
+|---|---|---|
+| 矩陣乘法位置 | VS（每頂點一次） | FS（每片段一次） |
+| 單光源效能 | ✅ 較優 | 稍差 |
+| 多光源 / Deferred | 需對每個光源重複轉換 | ✅ 天然適合 |
+| PBR 相容性 | 需額外處理 | ✅ G-Buffer 直接使用 |
 
 ## 實戰常見問題 (FAQ)
 

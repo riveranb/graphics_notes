@@ -1,17 +1,26 @@
 # 遊戲開發 - 法線貼圖 Normal Mapping
 
-![Normal Mapping](images/normalmapping_explain_demo.jpg)
+![Normal Mapping Demo](images/normalmapping_comparison_demo.png)
 
 在 3D 繪圖中，物體表面的光影細節（如凹凸、皺褶、裂縫）能大幅提升真實感。然而，要用幾何頂點（Vertices）來呈現這些細節，會需要極高的多邊形面數（High Poly），這對即時渲染的效能是一大負擔。
 
 **法線貼圖 (Normal Mapping)** 是一種在低面數（Low Poly）模型上，利用特殊紋理「欺騙」光照系統、呈現高面數凹凸細節的技術。
+
+![Normal Mapping](images/normalmapping_explain_demo.jpg)
+
+![Brick Demo](images/normalmapping_compare.png)
 
 ## 法線貼圖的基本概念
 
 ![Normal Map](images/normalmap_concept.jpg)
 
 在標準的光照計算中，表面的法線向量（Normal Vector）決定了光線如何反射。若整個表面共用同一個法線，光照結果自然一片平坦。法線貼圖的核心思想是：**將逐頂點（Per-vertex）的法線，替換為逐像素片段（Per-fragment）的法線。**
-我們將每個像素位置的法線向量 $(X, Y, Z)$ 轉換為 $(R, G, B)$ 顏色值，儲存在一張 2D 紋理貼圖 (稱為 Normal Map) 中。
+
+![Surface Bump](images/normalmapping_surfacebump.png)
+
+我們將每個像素位置的法線向量 $(X, Y, Z)$ 轉換為 $(R, G, B)$ 顏色值，儲存在一張 2D 紋理貼圖 (稱為 Normal Map) 中，如下圖為磚塊造型的法線貼圖：
+
+![NormalMap Brick](images/normalmap_brick.png)
 
 *   **為什麼法線貼圖看起來是偏藍紫色的？**
     法線向量的範圍是 $[-1, 1]$，存入圖片時會被映射到 $[0, 1]$。大多數情況下，表面的法線是垂直向外的，也就是指向正 Z 軸 $(0, 0, 1)$。經過映射後，這個向量變成 $(0.5, 0.5, 1.0)$，在 RGB 色彩空間中呈現的就是一種偏藍紫色的視覺效果。
@@ -26,6 +35,8 @@
 *   **N (Normal, Z 軸)**：垂直於表面的幾何法線。
 
 ### 切線與副切線的計算原理
+
+![TBN Calculate](images/normalmapping_tbn_edges.png)
 
 法線 (N) 通常由 3D 建模軟體提供，但切線 (T) 和副切線 (B) 該如何計算？T 就是「表面上 U 座標增加的 3D 方向」，B 就是「V 座標增加的 3D 方向」。當我們沿著三角形的一條邊從 $P_1$ 走到 $P_2$ 時，UV 座標分別變化了 $\Delta U$ 和 $\Delta V$，因此這條邊可以拆解為：
 

@@ -1,6 +1,6 @@
 # 遊戲開發 - 法線貼圖 Normal Mapping
 
-![Normal Mapping](images/)
+![Normal Mapping](images/normalmapping_explain_demo.jpg)
 
 在 3D 繪圖中，物體表面的光影細節（如凹凸、皺褶、裂縫）能大幅提升真實感。然而，要用幾何頂點（Vertices）來呈現這些細節，會需要極高的多邊形面數（High Poly），這對即時渲染的效能是一大負擔。
 
@@ -8,7 +8,7 @@
 
 ## 法線貼圖的基本概念
 
-![Normal Map](images/)
+![Normal Map](images/normalmap_concept.jpg)
 
 在標準的光照計算中，表面的法線向量（Normal Vector）決定了光線如何反射。若整個表面共用同一個法線，光照結果自然一片平坦。法線貼圖的核心思想是：**將逐頂點（Per-vertex）的法線，替換為逐像素片段（Per-fragment）的法線。**
 我們將每個像素位置的法線向量 $(X, Y, Z)$ 轉換為 $(R, G, B)$ 顏色值，儲存在一張 2D 紋理貼圖 (稱為 Normal Map) 中。
@@ -17,6 +17,8 @@
     法線向量的範圍是 $[-1, 1]$，存入圖片時會被映射到 $[0, 1]$。大多數情況下，表面的法線是垂直向外的，也就是指向正 Z 軸 $(0, 0, 1)$。經過映射後，這個向量變成 $(0.5, 0.5, 1.0)$，在 RGB 色彩空間中呈現的就是一種偏藍紫色的視覺效果。
 
 ## 切線空間 (Tangent Space)
+
+![TBN Vectors](images/normalmapping_tbn_vectors.png)
 
 若法線貼圖記錄的是世界或模型空間的絕對方向，貼圖就只能用於特定朝向的表面；換到不同朝向的面（如立方體的六個面），法線方向就會完全錯誤，無法重複共用。為了解決這個問題，法線貼圖內的法線向量是定義在一個相對於模型表面的局部座標系中，稱為**切線空間 (Tangent Space)**。構成切線空間需要三個互相垂直的基底向量，組合成 **TBN 矩陣**：
 *   **T (Tangent, X 軸)**：平行表面，對應紋理 UV 的 U 方向（水平）。
@@ -50,6 +52,8 @@ vec3 B = cross(N, T);
 ```
 
 ## Shader 實作邏輯
+
+![Shader Strategies](images/normalmapping_shader_strategies.jpg)
 
 在渲染管線中實作 Normal Mapping，有兩種空間轉換策略：
 1.  將光源與視角從「世界空間」轉換到「切線空間」，在切線空間中做光照。
@@ -148,6 +152,8 @@ float diff = max(dot(normal, lightDir), 0.0);
 ## 實戰常見問題 (FAQ)
 
 ### 為什麼貼上去後，該凸出的地方反而凹下去？
+
+![Green Channel Flip](images/normalmap_green_flip.jpg)
 
 這是遊戲業最經典的地雷：**綠色通道翻轉 (Flip Green Channel / Y+ vs Y-)**。
 *   **OpenGL 系統**（含本篇範例）：法線貼圖的 Y 軸指向上方（**Y+**）。

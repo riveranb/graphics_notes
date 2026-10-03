@@ -250,10 +250,11 @@ export const Tbr: React.FC = () => {
     const readingChips = new Set(badges.filter((b) => reading.some((j) => j.tile === b.tile)).map((b) => b.chip));
     const recentWrite = [...vertexChips, ...badges].some((c) => frame >= c.at && frame < c.at + 8);
 
-    const phase1Opacity = interpolate(frame, [binEnd, binEnd + 15], [1, 0], CLAMP);
-    const gapOpacity = interpolate(frame, [binEnd + 5, binEnd + 20, p2Start - 20, p2Start - 5], [0, 1, 1, 0], CLAMP);
+    // GPU 面板同一塊區域輪流顯示：前一段完全淡出後，下一段才淡入（避免文字疊在一起）
+    const phase1Opacity = interpolate(frame, [binEnd, binEnd + 10], [1, 0], CLAMP);
+    const gapOpacity = interpolate(frame, [binEnd + 10, binEnd + 22, p2Start - 25, p2Start - 10], [0, 1, 1, 0], CLAMP);
     const detailOpacity = interpolate(frame, [p2Start - 10, p2Start, fastStart - 15, fastStart], [0, 1, 1, 0], CLAMP);
-    const fastOpacity = interpolate(frame, [fastStart - 5, fastStart + 10], [0, 1], CLAMP);
+    const fastOpacity = interpolate(frame, [fastStart, fastStart + 12], [0, 1], CLAMP);
 
     const screenColor = (x: number, y: number): string => {
         const tri = lastTri(x, y, frame);
@@ -387,24 +388,26 @@ export const Tbr: React.FC = () => {
                     );
                 })}
 
-                {/* 處理中的 Tile：外框 + Core 標籤 + 連到 Tile Memory 的虛線 */}
+                {/* 處理中的 Tile：外框 + Core 標籤；連到 Tile Memory 的虛線只在單一 Core 細節時畫（多 Core 時會穿過面板說明文字） */}
                 {active.map((j) => {
                     const [ox, oy] = tileOrigin(j.tile);
                     const to = memOrigin(j);
-                    const fade = interpolate(frame, [j.start, j.start + 6], [0, 1], CLAMP) * (j.slow ? detailOpacity : fastOpacity);
+                    const fade = interpolate(frame, [j.start, j.start + 6], [0, 1], CLAMP) * detailOpacity;
                     return (
                         <g key={`active-${j.tile}`}>
-                            <line
-                                x1={ox + TILE_PX / 2}
-                                y1={oy + TILE_PX / 2}
-                                x2={to.x - 8}
-                                y2={to.y + (TILE * memCell(j)) / 2}
-                                stroke={COLOR.accent}
-                                strokeWidth={3}
-                                strokeDasharray="10 8"
-                                strokeDashoffset={-frame * 1.5}
-                                opacity={0.7 * fade}
-                            />
+                            {j.slow ? (
+                                <line
+                                    x1={ox + TILE_PX / 2}
+                                    y1={oy + TILE_PX / 2}
+                                    x2={to.x - 8}
+                                    y2={to.y + (TILE * memCell(j)) / 2}
+                                    stroke={COLOR.accent}
+                                    strokeWidth={3}
+                                    strokeDasharray="10 8"
+                                    strokeDashoffset={-frame * 1.5}
+                                    opacity={0.7 * fade}
+                                />
+                            ) : null}
                             <rect x={ox} y={oy} width={TILE_PX} height={TILE_PX} fill="none" stroke={COLOR.accent} strokeWidth={6} />
                             <rect x={ox + TILE_PX - 48} y={oy + TILE_PX - 36} width={44} height={32} rx={6} fill={COLOR.accent} />
                             <text x={ox + TILE_PX - 26} y={oy + TILE_PX - 13} fontSize={20} fontWeight={700} fill="#111" textAnchor="middle" fontFamily="Helvetica, Arial">
@@ -481,7 +484,7 @@ export const Tbr: React.FC = () => {
                 cues={[
                     { from: 0, text: "Phase 1 · Binning：先算出所有三角形的位置，記錄每個 Tile 會被哪些三角形影響" },
                     { from: binEnd, text: "Phase 2 必須等這個 Render Pass 的 Binning 全部完成，每個 Tile 的清單才完整" },
-                    { from: p2Start - 10, text: "Phase 2 · 先看一個 Core：讀回清單，依提交順序只畫清單裡的三角形，Color / Depth 都留在 On-chip" },
+                    { from: p2Start - 10, text: "Phase 2 · 先看單一 Core：依提交順序只畫清單裡的三角形，Color / Depth 都留在 On-chip" },
                     { from: jobs[0].end, text: "Tile 完成時只把 Color 寫回 DRAM，Depth 直接丟棄（DONT_CARE，不寫回）" },
                     { from: fastStart - 15, text: "實際上多個 Shader Core 同時處理不同 Tile：Tile 之間互不相依，處理順序不影響結果" },
                     {

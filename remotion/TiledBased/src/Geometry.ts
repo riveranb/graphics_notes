@@ -22,12 +22,13 @@ export const TILE_ROWS = ROWS / TILE;
 export const TILE_COUNT = TILE_COLS * TILE_ROWS;
 
 // 提交順序 = 陣列順序，後畫的比較近（Depth Test 全部通過 → 最大 Overdraw）。Q1/Q2 是全螢幕背景 Quad
+// 三角形顏色避開已有語意的 orange（DRAM）/ teal（On-chip）/ 黃（強調）/ 紫（Geometry）
 export const TRIANGLES: readonly Tri[] = [
     { label: "Q1", color: "#4a5672", z: 0.9, v: [[0, 0], [16, 0], [0, 12]] },
     { label: "Q2", color: "#4a5672", z: 0.9, v: [[16, 0], [16, 12], [0, 12]] },
     { label: "A", color: "#4f8ef7", z: 0.6, v: [[1, 1], [11, 2], [3, 11]] },
-    { label: "B", color: "#f59e42", z: 0.4, v: [[6, 3], [15, 5], [9, 11.5]] },
-    { label: "C", color: "#3ecf8e", z: 0.2, v: [[10, 0.5], [14.5, 2.5], [11, 6]] },
+    { label: "B", color: "#ec4899", z: 0.4, v: [[6, 3], [15, 5], [9, 11.5]] },
+    { label: "C", color: "#84cc16", z: 0.2, v: [[10, 0.5], [14.5, 2.5], [11, 6]] },
 ];
 
 const edge = (a: Vec2, b: Vec2, px: number, py: number): number => {

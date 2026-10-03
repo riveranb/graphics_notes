@@ -11,8 +11,8 @@ export const COLOR = {
     border: "#2c3445",
     dim: "#8b94a7",
     accent: "#ffd166",
-    bad: "#ff6b6b",
-    good: "#7ee787",
+    bad: "#f0773a", // 簡報 orange（DRAM 流量）的深底版
+    good: "#2bc4ae", // 簡報 teal（On-chip / 完成）的深底版
     geo: "#a78bfa", // Geometry 資料（Vertex / Primitive List），刻意不用三角形的顏色
 } as const;
 
